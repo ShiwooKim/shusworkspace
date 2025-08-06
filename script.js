@@ -1,92 +1,221 @@
-// Smooth scroll to section
-function scrollToSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    if (section) {
-        section.scrollIntoView({ behavior: 'smooth' });
+// Shu's Workspace - Main JavaScript
+
+class ShusWorkspace {
+    constructor() {
+        this.currentPage = 'home';
+        this.isAuthenticated = false;
+        this.privatePassword = 'shu2025';
+        this.init();
     }
-}
-
-// Update active navigation link based on scroll position
-function updateActiveNavLink() {
-    const sections = document.querySelectorAll('.section');
-    const navLinks = document.querySelectorAll('.nav-link');
     
-    let current = '';
+    init() {
+        this.setupEventListeners();
+        this.handleInitialRoute();
+        this.checkAuthStatus();
+        this.setupAnimations();
+    }
     
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop;
-        const sectionHeight = section.clientHeight;
-        if (window.pageYOffset >= sectionTop - 200) {
-            current = section.getAttribute('id');
-        }
-    });
-    
-    navLinks.forEach(link => {
-        link.classList.remove('active');
-        if (link.getAttribute('href') === `#${current}`) {
-            link.classList.add('active');
-        }
-    });
-}
-
-// Add click event listeners to navigation links
-document.addEventListener('DOMContentLoaded', function() {
-    const navLinks = document.querySelectorAll('.nav-link');
-    
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href').substring(1);
-            scrollToSection(targetId);
+    setupEventListeners() {
+        // Sidebar toggle
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        
+        sidebarToggle?.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
         });
-    });
+        
+        // Navigation links
+        const navLinks = document.querySelectorAll('.nav-link, .card-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const page = e.target.closest('[data-page]')?.dataset.page;
+                if (page) {
+                    this.navigateToPage(page);
+                }
+            });
+        });
+        
+        // Close sidebar when clicking outside
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024) {
+                if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                sidebar.classList.remove('open');
+            }
+            if (e.key === 'Enter' && e.target.id === 'privatePassword') {
+                this.authenticatePrivate();
+            }
+        });
+        
+        window.authenticatePrivate = () => this.authenticatePrivate();
+    }
     
-    // Update active nav link on scroll
-    window.addEventListener('scroll', updateActiveNavLink);
+    handleInitialRoute() {
+        const hash = window.location.hash.slice(1);
+        if (hash && document.getElementById(hash)) {
+            this.navigateToPage(hash);
+        }
+    }
     
-    // Initial call to set active link
-    updateActiveNavLink();
-});
-
-// Add some animation on page load
-window.addEventListener('load', function() {
-    const hero = document.querySelector('.hero');
-    const docCards = document.querySelectorAll('.doc-card');
-    const features = document.querySelectorAll('.feature');
+    navigateToPage(pageId) {
+        if (pageId === 'private-planning' && !this.isAuthenticated) {
+            this.showAuthRequired();
+        }
+        
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+        
+        const targetPage = document.getElementById(pageId);
+        const targetNavLink = document.querySelector(`[data-page="${pageId}"]`);
+        
+        if (targetPage) {
+            targetPage.classList.add('active');
+            this.currentPage = pageId;
+            window.location.hash = pageId;
+            
+            const pageTitle = targetPage.querySelector('.page-title')?.textContent;
+            if (pageTitle) {
+                document.title = `${pageTitle} - Shu's Workspace`;
+            }
+        }
+        
+        if (targetNavLink) {
+            targetNavLink.classList.add('active');
+        }
+        
+        if (window.innerWidth <= 1024) {
+            document.getElementById('sidebar').classList.remove('open');
+        }
+        
+        window.scrollTo(0, 0);
+    }
     
-    // Animate hero section
-    if (hero) {
-        hero.style.opacity = '0';
-        hero.style.transform = 'translateY(20px)';
-        hero.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+    showAuthRequired() {
+        this.navigateToPage('private-planning');
+        const authRequired = document.querySelector('.auth-required');
+        const privateContent = document.querySelector('.private-content');
+        
+        if (authRequired && privateContent) {
+            authRequired.style.display = 'flex';
+            privateContent.style.display = 'none';
+        }
+    }
+    
+    authenticatePrivate() {
+        const passwordInput = document.getElementById('privatePassword');
+        const authError = document.getElementById('authError');
+        const password = passwordInput.value;
+        
+        if (password === this.privatePassword) {
+            this.isAuthenticated = true;
+            sessionStorage.setItem('shu_workspace_auth', 'true');
+            sessionStorage.setItem('shu_workspace_auth_time', Date.now().toString());
+            
+            this.showPrivateContent();
+            passwordInput.value = '';
+            authError.textContent = '';
+        } else {
+            authError.textContent = 'Incorrect password. Please try again.';
+            passwordInput.value = '';
+        }
+    }
+    
+    showPrivateContent() {
+        const authRequired = document.querySelector('.auth-required');
+        const privateContent = document.querySelector('.private-content');
+        
+        if (authRequired && privateContent) {
+            authRequired.style.display = 'none';
+            privateContent.style.display = 'block';
+            privateContent.style.animation = 'fadeIn 0.5s forwards';
+        }
+    }
+    
+    checkAuthStatus() {
+        const authStatus = sessionStorage.getItem('shu_workspace_auth');
+        const authTime = sessionStorage.getItem('shu_workspace_auth_time');
+        
+        if (authStatus === 'true' && authTime) {
+            const timeDiff = Date.now() - parseInt(authTime);
+            const twentyFourHours = 24 * 60 * 60 * 1000;
+            
+            if (timeDiff < twentyFourHours) {
+                this.isAuthenticated = true;
+            } else {
+                sessionStorage.removeItem('shu_workspace_auth');
+                sessionStorage.removeItem('shu_workspace_auth_time');
+            }
+        }
+    }
+    
+    setupAnimations() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
         
         setTimeout(() => {
-            hero.style.opacity = '1';
-            hero.style.transform = 'translateY(0)';
+            const elements = document.querySelectorAll('.content-card, .project-card, .note-card, .blog-post');
+            elements.forEach((el, index) => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+                observer.observe(el);
+            });
         }, 100);
     }
+}
+
+// Additional styles
+const additionalCSS = `
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+        20%, 40%, 60%, 80% { transform: translateX(3px); }
+    }
     
-    // Animate doc cards
-    docCards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        
-        setTimeout(() => {
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, 300 + index * 200);
-    });
+    .sidebar.open {
+        transform: translateX(0) !important;
+    }
     
-    // Animate features
-    features.forEach((feature, index) => {
-        feature.style.opacity = '0';
-        feature.style.transform = 'translateY(20px)';
-        feature.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-        
-        setTimeout(() => {
-            feature.style.opacity = '1';
-            feature.style.transform = 'translateY(0)';
-        }, 600 + index * 200);
-    });
-}); 
+    .nav-link::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        transition: left 0.5s;
+    }
+    
+    .nav-link:hover::before {
+        left: 100%;
+    }
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = additionalCSS;
+document.head.appendChild(styleSheet);
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    const workspace = new ShusWorkspace();
+    
+    setTimeout(() => {
+        console.log('🚀 Shu\'s Workspace initialized successfully!');
+        console.log('🔐 Private password: shu2025');
+    }, 1000);
+});

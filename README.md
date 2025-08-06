@@ -1,67 +1,76 @@
-# ShuDocs
+# Shu's Workspace
 
-간단하고 깔끔한 문서 사이트입니다.
+A minimalist, developer-focused documentation workspace inspired by Confluence and Notion.
 
-## 특징
+## ✨ Features
 
-- 🚀 **빠른 속도**: 최적화된 코드로 빠른 로딩
-- 📱 **반응형**: 모든 기기에서 완벽한 표시
-- 🎨 **깔끔한 디자인**: 모던하고 직관적인 UI
-- 📄 **간단한 구조**: 순수 HTML, CSS, JavaScript로 구성
+- **Clean Design**: Minimalist black/gray theme with developer aesthetics
+- **Sidebar Navigation**: Collapsible sidebar with organized sections
+- **Public & Private Docs**: Password-protected private section
+- **Responsive Design**: Mobile-friendly interface
+- **SPA Experience**: Smooth page transitions without reloads
 
-## 파일 구조
+## 🎨 Design Philosophy
 
-```
-shudocs/
-├── index.html      # 메인 HTML 파일
-├── styles.css      # CSS 스타일
-├── script.js       # JavaScript 기능
-└── README.md       # 프로젝트 설명
-```
+Built with the developer mindset in mind - clean, functional, and distraction-free. The color palette draws inspiration from the tools developers love: dark themes, terminal windows, and Steve Jobs' iconic black aesthetic.
 
-## 사용법
+## 🔐 Authentication
 
-1. 브라우저에서 `index.html` 파일을 열어보세요
-2. 네비게이션을 통해 각 섹션으로 이동할 수 있습니다
-3. 문서 카드를 클릭하여 자세한 내용을 확인하세요
+The private section uses simple client-side authentication for demo purposes:
+- **Password**: `shu2025`
+- **Session Duration**: 24 hours
 
-## 배포하기
+## 🚀 Live Demo
 
-### GitHub Pages
+Visit the live site: [Shu's Workspace](https://shiwookim.github.io/ShiwooKim/)
 
-1. GitHub에 저장소를 생성합니다
-2. 파일들을 업로드합니다
-3. Settings > Pages에서 GitHub Pages를 활성화합니다
-4. `https://username.github.io/repository-name`에서 사이트를 확인할 수 있습니다
+## 🛠️ Tech Stack
 
-### Netlify
+- **HTML5**: Semantic markup
+- **CSS3**: Modern styling with CSS Grid/Flexbox
+- **Vanilla JavaScript**: No dependencies, pure ES6+
+- **GitHub Pages**: Static hosting
 
-1. [Netlify](https://netlify.com)에 가입합니다
-2. "New site from Git"을 클릭합니다
-3. GitHub 저장소를 연결합니다
-4. 자동으로 배포됩니다
+## 📱 Browser Support
 
-### Vercel
+- Chrome (recommended)
+- Firefox
+- Safari
+- Edge
 
-1. [Vercel](https://vercel.com)에 가입합니다
-2. "New Project"를 클릭합니다
-3. GitHub 저장소를 import합니다
-4. 자동으로 배포됩니다
+## 🏗️ Local Development
 
-## 커스터마이징
+1. Clone the repository
+2. Open `index.html` in your browser
+3. Or serve with a local server:
+   ```bash
+   python -m http.server 8000
+   ```
 
-- `styles.css`에서 색상과 스타일을 변경할 수 있습니다
-- `index.html`에서 내용을 수정할 수 있습니다
-- `script.js`에서 기능을 추가할 수 있습니다
+## 📋 Page Structure
 
-## 라이선스
+- **Home**: Welcome page with overview cards
+- **Profile**: Personal information and skills
+- **Public Projects**: Open planning documents
+- **Private Projects**: Password-protected workspace
+- **Blog**: Technical writing and thoughts
+- **Notes**: Quick documentation
 
-MIT License
+## 🎯 Usage
 
-## 기여하기
+1. Navigate using the sidebar menu
+2. Access private content with password
+3. Responsive design adapts to your device
+4. Clean, distraction-free reading experience
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request 
+## 🔮 Future Enhancements
+
+- [ ] Dark/Light theme toggle
+- [ ] Markdown rendering for documents
+- [ ] Search functionality
+- [ ] Document version history
+- [ ] Export capabilities
+
+---
+
+Built with ❤️ by Shu | Powered by vanilla web technologies
