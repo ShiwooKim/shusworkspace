@@ -79,64 +79,7 @@ function LocalDevDashboard() {
   );
 }
 
-function ProductionRedirectPage() {
-  React.useEffect(() => {
-    // Workers 내부 요청인지 확인
-    const isWorkerRequest = navigator.userAgent.includes('Cloudflare-Workers-Internal-Request') ||
-                           window.location.search.includes('workers-internal=true') ||
-                           document.referrer.includes('workers.dev');
-    
-    // Workers 내부 요청이 아닐 때만 리다이렉트
-    if (!isWorkerRequest) {
-      window.location.replace('https://shusworkspace-auth.shusworkspace.workers.dev');
-    }
-  }, []);
 
-  return (
-    <Layout title="보안 접속 중" description="보안 사이트로 이동 중">
-      <div style={{
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        margin: 0,
-        padding: 0,
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white'
-      }}>
-        <div style={{ textAlign: 'center', padding: '2rem' }}>
-          <div style={{
-            border: '4px solid rgba(255,255,255,0.3)',
-            borderRadius: '50%',
-            borderTop: '4px solid white',
-            width: '40px',
-            height: '40px',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 1rem'
-          }}></div>
-          <h1>🔒 보안 접속 중...</h1>
-          <p>보안이 강화된 사이트로 이동하고 있습니다.</p>
-          
-          <div style={{ marginTop: '2rem', fontSize: '14px', opacity: 0.8 }}>
-            <p>자동으로 이동되지 않는다면{' '}
-            <a href="https://shusworkspace-auth.shusworkspace.workers.dev" 
-               style={{ color: 'white', textDecoration: 'underline' }}>
-              여기를 클릭
-            </a>하세요.</p>
-          </div>
-        </div>
-        
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    </Layout>
-  );
-}
 
 export default function Home(): JSX.Element {
   const {siteConfig} = useDocusaurusContext();
@@ -149,32 +92,22 @@ export default function Home(): JSX.Element {
                            window.location.hostname === '127.0.0.1' ||
                            window.location.hostname.includes('.local');
 
-        // Workers 내부 요청 체크
-        const isWorkerRequest = navigator.userAgent.includes('Cloudflare-Workers-Internal-Request') ||
-                               window.location.search.includes('workers-internal=true') ||
-                               document.referrer.includes('workers.dev');
-
         // 로컬호스트면 개발 대시보드
         if (isLocalhost) {
           return <LocalDevDashboard />;
         }
 
-        // Workers 내부 요청이면 기본 Docusaurus 홈페이지
-        if (isWorkerRequest) {
-          return (
-            <Layout
-              title={`Hello from ${siteConfig.title}`}
-              description="Shu's Workspace - 보안이 강화된 문서 관리 시스템">
-              <HomepageHeader />
-              <main>
-                <HomepageFeatures />
-              </main>
-            </Layout>
-          );
-        }
-
-        // 그 외에는 리다이렉트 페이지
-        return <ProductionRedirectPage />;
+        // 그 외에는 기본 Docusaurus 홈페이지
+        return (
+          <Layout
+            title={`Hello from ${siteConfig.title}`}
+            description="Shu's Workspace - 보안이 강화된 문서 관리 시스템">
+            <HomepageHeader />
+            <main>
+              <HomepageFeatures />
+            </main>
+          </Layout>
+        );
       }}
     </BrowserOnly>
   );
