@@ -604,44 +604,35 @@ function getSectionFromPath(path) {
 }
 
 function injectCustomSidebar(htmlContent, section) {
-  // 커스텀 사이드바 HTML
+  // React Hydration 에러를 방지하기 위해 더 간단한 방식 사용
+  // body 태그 바로 뒤에 사이드바를 삽입하고 기존 콘텐츠를 래핑
   const customSidebar = generateCustomSidebar(section)
-  
-  // Docusaurus의 기본 사이드바와 메인 콘텐츠를 찾아서 대체
-  let wrappedContent = htmlContent
-  
-  // 방법 1: .container 또는 .main-wrapper를 찾아서 대체
-  if (wrappedContent.includes('class="container"')) {
-    wrappedContent = wrappedContent.replace(
-      /<div[^>]*class="[^"]*container[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
-      `<div class="doc-wrapper">
-        ${customSidebar}
-        <div class="main-content">
-          <div class="container">$1</div>
-        </div>
-      </div>`
-    )
-  } else {
-    // 방법 2: main 태그를 찾아서 대체
-    wrappedContent = wrappedContent.replace(
-      /<main[^>]*>([\s\S]*?)<\/main>/i,
-      `<div class="doc-wrapper">
-        ${customSidebar}
-        <div class="main-content">
-          <main$1>$2</main>
-        </div>
-      </div>`
-    )
-  }
-  
-  // CSS 스타일 추가
   const customCSS = generateCustomCSS()
-  const finalContent = wrappedContent.replace(
+  
+  // CSS 먼저 추가
+  let modifiedContent = htmlContent.replace(
     '</head>',
     `${customCSS}</head>`
   )
   
-  return finalContent
+  // body 태그 바로 뒤에 사이드바 추가하고 나머지 내용을 래핑
+  modifiedContent = modifiedContent.replace(
+    /(<body[^>]*>)/i,
+    `$1
+    <div class="doc-wrapper">
+      ${customSidebar}
+      <div class="main-content-wrapper">`
+  )
+  
+  // body 태그 닫히기 전에 wrapper 닫기
+  modifiedContent = modifiedContent.replace(
+    '</body>',
+    `    </div>
+    </div>
+    </body>`
+  )
+  
+  return modifiedContent
 }
 
 function generateCustomSidebar(currentSection) {
@@ -692,11 +683,16 @@ function generateCustomCSS() {
   <style>
   .doc-wrapper {
     display: flex !important;
-    gap: 2rem;
+    gap: 0;
     margin: 0;
-    min-height: calc(100vh - 60px);
+    min-height: 100vh;
     max-width: none !important;
     width: 100% !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    background: var(--ifm-background-color, white);
   }
 
   .custom-sidebar {
@@ -787,20 +783,24 @@ function generateCustomCSS() {
     color: var(--ifm-font-color-base-inverse, white);
   }
 
-  .main-content {
+  .main-content-wrapper {
     flex: 1;
-    padding: 2rem;
-    max-width: none !important;
-    width: auto !important;
-    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100vh;
+    padding-left: 2rem;
   }
   
-  /* Docusaurus 기본 레이아웃 조정 */
-  .main-content .container {
-    max-width: none !important;
+  /* 기존 Docusaurus 요소들 숨기기 */
+  .navbar {
+    display: none !important;
   }
   
-  .main-content main {
+  .theme-doc-sidebar-container {
+    display: none !important;
+  }
+  
+  /* 기본 body 여백 제거 */
+  body {
     margin: 0 !important;
     padding: 0 !important;
   }
