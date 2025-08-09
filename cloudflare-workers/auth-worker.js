@@ -8,14 +8,10 @@ const GITHUB_PAGES_URL = 'https://shiwookim.github.io/shusworkspace'
 
 // 각 섹션별 비밀번호 설정
 const PASSWORDS = {
-  '/docs/private/': 'private123',           // Private Notes 비밀번호
-  '/docs/workspace/': 'workspace456',       // Workspace 비밀번호 
-  '/docs/project-a/': 'projectA789',        // Project A 비밀번호
-  '/docs/project-c/': 'projectC101',        // Project C 비밀번호
-  '/docs/category/workspace': 'workspace456',   // Workspace 카테고리
-  '/docs/category/private': 'private123',       // Private Notes 카테고리  
-  '/docs/category/-project-a': 'projectA789',   // Project A 카테고리
-  '/docs/category/-project-c': 'projectC101'    // Project C 카테고리
+  '/docs/private': 'private123',           // Private Notes 전체 (슬래시 제거로 모든 하위 경로 포함)
+  '/docs/workspace': 'workspace456',       // Workspace 전체 (슬래시 제거로 모든 하위 경로 포함)
+  '/docs/project-a': 'projectA789',        // Project A 전체 (슬래시 제거로 모든 하위 경로 포함)
+  '/docs/project-c': 'projectC101'         // Project C 전체 (슬래시 제거로 모든 하위 경로 포함)
 }
 
 async function handleRequest(request) {
