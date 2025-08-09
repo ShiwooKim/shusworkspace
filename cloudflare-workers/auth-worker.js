@@ -28,7 +28,38 @@ const PASSWORDS = {
 
 async function handleRequest(request) {
   const url = new URL(request.url)
-  const pathname = url.pathname
+  let pathname = url.pathname
+
+  // 0) 잘못 분리된 섹션 경로 교정: /workspac/e, /project-/a, /project-/c 등
+  const fixSplitSection = (p) => {
+    try {
+      const original = p
+      const [pathOnly, searchHash] = p.split(/([?#].*)/, 2)
+      const parts = pathOnly.replace(/^\/+/, '').split('/')
+      const hasBase = parts[0] === 'shusworkspace'
+      const idxDocs = hasBase ? 1 : 0
+      if (parts[idxDocs] !== 'docs') return original
+      const idxSection = idxDocs + 1
+      const sec = parts[idxSection] || ''
+      const next = parts[idxSection + 1] || ''
+      let fixed = null
+      if (sec === 'workspac' && next === 'e') fixed = 'workspace'
+      if (sec === 'project-' && (next === 'a' || next === 'c')) fixed = `project-${next}`
+      if (fixed) {
+        parts.splice(idxSection, 2, fixed)
+        const repaired = '/' + parts.join('/') + (searchHash || '')
+        return repaired
+      }
+      return original
+    } catch {
+      return p
+    }
+  }
+
+  const repaired = fixSplitSection(pathname)
+  if (repaired !== pathname) {
+    return Response.redirect(repaired, 302)
+  }
   
   // 루트 경로 접근 시 /shusworkspace/로 리다이렉트
   if (pathname === '/') {
