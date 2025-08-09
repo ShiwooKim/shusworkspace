@@ -129,13 +129,16 @@ async function handleRequest(request) {
       // 폴더 경로를 intro 페이지로 매핑 (GitHub Pages는 슬래시 필요)
       let actualPath = pathname
       if (pathname.endsWith('/docs/workspace/') || pathname === '/docs/workspace') {
-        actualPath = '/shusworkspace/docs/workspace/intro/'
+        actualPath = '/shusworkspace/docs/workspace/intro'
       } else if (pathname.endsWith('/docs/private/') || pathname === '/docs/private') {
-        actualPath = '/shusworkspace/docs/private/intro/'
+        actualPath = '/shusworkspace/docs/private/intro'
       } else if (pathname.endsWith('/docs/project-a/') || pathname === '/docs/project-a') {
-        actualPath = '/shusworkspace/docs/project-a/intro/'
+        actualPath = '/shusworkspace/docs/project-a/intro'
       } else if (pathname.endsWith('/docs/project-c/') || pathname === '/docs/project-c') {
-        actualPath = '/shusworkspace/docs/project-c/intro/'
+        actualPath = '/shusworkspace/docs/project-c/intro'
+      } else {
+        // 기타 경로들은 baseURL만 추가
+        actualPath = `/shusworkspace${pathname}`
       }
       
       console.log(`[DEBUG] Auth success - mapping ${pathname} to ${actualPath}`)
@@ -170,21 +173,13 @@ async function handleRequest(request) {
     // 이미 인증됨 - 경로 매핑 적용 (GitHub Pages는 슬래시 필요)
     let actualPath = pathname
     if (pathname.endsWith('/docs/workspace/') || pathname === '/docs/workspace') {
-      actualPath = '/shusworkspace/docs/workspace/intro/'
+      actualPath = '/shusworkspace/docs/workspace/intro'
     } else if (pathname.endsWith('/docs/private/') || pathname === '/docs/private') {
-      actualPath = '/shusworkspace/docs/private/intro/'
+      actualPath = '/shusworkspace/docs/private/intro'
     } else if (pathname.endsWith('/docs/project-a/') || pathname === '/docs/project-a') {
-      actualPath = '/shusworkspace/docs/project-a/intro/'
+      actualPath = '/shusworkspace/docs/project-a/intro'
     } else if (pathname.endsWith('/docs/project-c/') || pathname === '/docs/project-c') {
-      actualPath = '/shusworkspace/docs/project-c/intro/'
-    } else if (pathname.includes('/docs/workspace/intro')) {
-      actualPath = '/shusworkspace/docs/workspace/intro/'
-    } else if (pathname.includes('/docs/private/intro')) {
-      actualPath = '/shusworkspace/docs/private/intro/'
-    } else if (pathname.includes('/docs/project-a/intro')) {
-      actualPath = '/shusworkspace/docs/project-a/intro/'
-    } else if (pathname.includes('/docs/project-c/intro')) {
-      actualPath = '/shusworkspace/docs/project-c/intro/'
+      actualPath = '/shusworkspace/docs/project-c/intro'
     } else {
       // 보호된 경로 내의 다른 페이지들도 baseURL 추가
       actualPath = `/shusworkspace${pathname}`
@@ -612,16 +607,32 @@ function injectCustomSidebar(htmlContent, section) {
   // 커스텀 사이드바 HTML
   const customSidebar = generateCustomSidebar(section)
   
-  // 기존 Docusaurus 컨테이너를 찾아서 래핑
-  const wrappedContent = htmlContent.replace(
-    /<main[^>]*>([\s\S]*?)<\/main>/i,
-    `<div class="doc-wrapper">
-      ${customSidebar}
-      <div class="main-content">
-        <main$1>$2</main>
-      </div>
-    </div>`
-  )
+  // Docusaurus의 기본 사이드바와 메인 콘텐츠를 찾아서 대체
+  let wrappedContent = htmlContent
+  
+  // 방법 1: .container 또는 .main-wrapper를 찾아서 대체
+  if (wrappedContent.includes('class="container"')) {
+    wrappedContent = wrappedContent.replace(
+      /<div[^>]*class="[^"]*container[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
+      `<div class="doc-wrapper">
+        ${customSidebar}
+        <div class="main-content">
+          <div class="container">$1</div>
+        </div>
+      </div>`
+    )
+  } else {
+    // 방법 2: main 태그를 찾아서 대체
+    wrappedContent = wrappedContent.replace(
+      /<main[^>]*>([\s\S]*?)<\/main>/i,
+      `<div class="doc-wrapper">
+        ${customSidebar}
+        <div class="main-content">
+          <main$1>$2</main>
+        </div>
+      </div>`
+    )
+  }
   
   // CSS 스타일 추가
   const customCSS = generateCustomCSS()
@@ -646,7 +657,7 @@ function generateCustomSidebar(currentSection) {
         <h4>💼 Workspace</h4>
         <ul>
           <li class="${activeClass('workspace')}">
-            <a href="/docs/workspace/intro">소개</a>
+            <a href="/docs/workspace/">소개</a>
           </li>
         </ul>
       </div>
@@ -654,7 +665,7 @@ function generateCustomSidebar(currentSection) {
         <h4>🔒 Private Notes</h4>
         <ul>
           <li class="${activeClass('private')}">
-            <a href="/docs/private/intro">소개</a>
+            <a href="/docs/private/">소개</a>
           </li>
         </ul>
       </div>
@@ -662,15 +673,15 @@ function generateCustomSidebar(currentSection) {
         <h4>🚀 Projects</h4>
         <ul>
           <li class="${activeClass('project-a')}">
-            <a href="/docs/project-a/intro">Project A</a>
+            <a href="/docs/project-a/">Project A</a>
           </li>
           <li class="${activeClass('project-c')}">
-            <a href="/docs/project-c/intro">Project C</a>
+            <a href="/docs/project-c/">Project C</a>
           </li>
         </ul>
       </div>
       <div class="nav-section home-link">
-        <a href="/docs/intro">📋 Public Docs</a>
+        <a href="https://shiwookim.github.io/shusworkspace/docs/intro">📋 Public Docs</a>
       </div>
     </nav>
   </div>`
@@ -680,10 +691,12 @@ function generateCustomCSS() {
   return `
   <style>
   .doc-wrapper {
-    display: flex;
+    display: flex !important;
     gap: 2rem;
-    margin: -2rem;
+    margin: 0;
     min-height: calc(100vh - 60px);
+    max-width: none !important;
+    width: 100% !important;
   }
 
   .custom-sidebar {
@@ -777,7 +790,19 @@ function generateCustomCSS() {
   .main-content {
     flex: 1;
     padding: 2rem;
-    max-width: 900px;
+    max-width: none !important;
+    width: auto !important;
+    overflow-x: hidden;
+  }
+  
+  /* Docusaurus 기본 레이아웃 조정 */
+  .main-content .container {
+    max-width: none !important;
+  }
+  
+  .main-content main {
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   /* 다크 모드 지원 */
