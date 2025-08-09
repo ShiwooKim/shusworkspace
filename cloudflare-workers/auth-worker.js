@@ -38,6 +38,18 @@ async function handleRequest(request) {
   const url = new URL(request.url)
   let pathname = url.pathname
 
+  // 강력한 1차 타이포 교정: /workspac/e -> /workspace (baseUrl 유무 모두)
+  const typoFixed = pathname.replace(/\/(workspac)\/e(\/|$)/, '/workspace$2')
+  if (typoFixed !== pathname) {
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: `${url.origin}${typoFixed}`,
+        'Cache-Control': 'no-store'
+      }
+    })
+  }
+
   // 0) 잘못 분리된 섹션 경로 교정: /workspac/e, /project-/a, /project-/c 등
   const fixSplitSection = (p) => {
     try {
@@ -67,7 +79,10 @@ async function handleRequest(request) {
   const repaired = fixSplitSection(pathname)
   if (repaired !== pathname) {
     const location = repaired.startsWith('http') ? repaired : `${url.origin}${repaired}`
-    return Response.redirect(location, 302)
+    return new Response(null, {
+      status: 302,
+      headers: { Location: location, 'Cache-Control': 'no-store' }
+    })
   }
   
   // 루트 경로 접근 시 /shusworkspace/로 리다이렉트
