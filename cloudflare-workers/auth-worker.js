@@ -23,15 +23,54 @@ async function handleRequest(request) {
     return Response.redirect(`${url.origin}/shusworkspace/`, 302)
   }
   
-  // 로그아웃 경로 - 강제로 재인증 요구
+  // 로그아웃 경로 - 모든 인증 쿠키 삭제
   if (pathname === '/logout' || pathname === '/logout/') {
-    return new Response('로그아웃되었습니다. 브라우저를 새로고침하세요.', {
-      status: 401,
+    const logoutResponse = new Response(`
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그아웃 완료</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            margin: 0; padding: 0; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .container {
+            background: white; padding: 2rem; border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center;
+            max-width: 400px; width: 90%;
+        }
+        h1 { color: #333; margin-bottom: 1rem; }
+        .btn { background: #28a745; color: white; border: none; padding: 12px 24px;
+               border-radius: 6px; cursor: pointer; font-size: 16px; text-decoration: none;
+               display: inline-block; transition: background 0.3s; }
+        .btn:hover { background: #218838; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ 로그아웃 완료</h1>
+        <p>모든 세션이 종료되었습니다.</p>
+        <a href="${GITHUB_PAGES_URL}" class="btn">🏠 홈으로 돌아가기</a>
+    </div>
+</body>
+</html>`, {
+      status: 200,
       headers: {
-        'WWW-Authenticate': 'Basic realm="Logged Out"',
-        'Content-Type': 'text/html; charset=utf-8'
+        'Content-Type': 'text/html; charset=utf-8',
+        'Set-Cookie': [
+          'auth__docs_private_=; Path=/docs/private/; Max-Age=0',
+          'auth__docs_workspace_=; Path=/docs/workspace/; Max-Age=0', 
+          'auth__docs_project-a_=; Path=/docs/project-a/; Max-Age=0',
+          'auth__docs_project-c_=; Path=/docs/project-c/; Max-Age=0'
+        ].join(', ')
       }
     })
+    return logoutResponse
   }
   
   // 보호가 필요한 경로인지 확인
@@ -44,38 +83,44 @@ async function handleRequest(request) {
     return await fetchFromGitHubPages(pathname)
   }
   
-  // Basic Auth 헤더 확인
-  const authHeader = request.headers.get('Authorization')
-  
-  if (!authHeader || !authHeader.startsWith('Basic ')) {
-    return new Response(getLoginPage(protectedPath), {
-      status: 401,
-      headers: {
-        'WWW-Authenticate': 'Basic realm="Protected Area"',
-        'Content-Type': 'text/html; charset=utf-8'
-      }
-    })
+  // POST 요청인 경우 로그인 폼에서 제출된 데이터 처리
+  if (request.method === 'POST') {
+    const formData = await request.formData()
+    const password = formData.get('password')
+    const requiredPassword = PASSWORDS[protectedPath]
+    
+    if (password === requiredPassword) {
+      // 인증 성공 시 쿠키 설정하고 페이지 제공
+      const response = await fetchFromGitHubPages(pathname)
+      response.headers.set('Set-Cookie', `auth_${protectedPath.replace(/\//g, '_')}=${password}; Path=${protectedPath}; HttpOnly; SameSite=Strict; Max-Age=3600`)
+      return response
+    } else {
+      // 비밀번호 틀림
+      return new Response(getLoginPage(protectedPath, true), {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8'
+        }
+      })
+    }
   }
   
-  // 인증 정보 파싱
-  const credentials = atob(authHeader.slice(6))
-  const [username, password] = credentials.split(':')
+  // 쿠키 확인
+  const cookies = request.headers.get('Cookie') || ''
+  const authCookie = `auth_${protectedPath.replace(/\//g, '_')}=${PASSWORDS[protectedPath]}`
   
-  // 비밀번호 확인 (사용자명은 무시하고 비밀번호만 확인)
-  const requiredPassword = PASSWORDS[protectedPath]
-  
-  if (password !== requiredPassword) {
-    return new Response(getLoginPage(protectedPath, true), {
-      status: 401,
-      headers: {
-        'WWW-Authenticate': 'Basic realm="Protected Area"',
-        'Content-Type': 'text/html; charset=utf-8'
-      }
-    })
+  if (cookies.includes(authCookie)) {
+    // 이미 인증됨
+    return await fetchFromGitHubPages(pathname)
   }
   
-  // 인증 성공 시 GitHub Pages에서 컨텐츠 가져와서 반환
-  return await fetchFromGitHubPages(pathname)
+  // 인증되지 않음 - 로그인 폼 표시
+  return new Response(getLoginPage(protectedPath), {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8'
+    }
+  })
 }
 
 // GitHub Pages에서 컨텐츠를 가져오는 함수
@@ -139,10 +184,10 @@ async function fetchFromGitHubPages(pathname) {
   }
 }
 
-// 사용자 친화적인 로그인 페이지 HTML
+// 커스텀 로그인 폼 페이지 HTML
 function getLoginPage(path, isError = false) {
   const sectionName = getSectionName(path)
-  const errorMessage = isError ? '<p style="color: red;">❌ 비밀번호가 올바르지 않습니다.</p>' : ''
+  const errorMessage = isError ? '<div class="error-message">❌ 비밀번호가 올바르지 않습니다. 다시 시도해주세요.</div>' : ''
   
   return `
 <!DOCTYPE html>
@@ -152,64 +197,160 @@ function getLoginPage(path, isError = false) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔒 ${sectionName} - 접근 제한</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
-            padding: 0;
+            padding: 20px;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .container {
+        .login-container {
             background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 2.5rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
             text-align: center;
             max-width: 400px;
-            width: 90%;
+            width: 100%;
         }
-        h1 { color: #333; margin-bottom: 1rem; }
-        p { color: #666; margin-bottom: 1.5rem; }
-        .refresh-btn {
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        h1 { 
+            color: #333; 
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+        .subtitle {
+            color: #666; 
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+        input[type="password"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .login-btn {
+            width: 100%;
             background: #667eea;
             color: white;
             border: none;
             padding: 12px 24px;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 16px;
+            font-weight: 500;
             transition: background 0.3s;
+            margin-bottom: 1rem;
         }
-        .refresh-btn:hover { background: #5a6fd8; }
+        .login-btn:hover { 
+            background: #5a6fd8; 
+        }
+        .login-btn:active {
+            transform: translateY(1px);
+        }
         .back-btn {
             background: #6c757d;
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            margin-top: 1rem;
             text-decoration: none;
             display: inline-block;
+            transition: background 0.3s;
         }
-        .back-btn:hover { background: #5a6268; }
+        .back-btn:hover { 
+            background: #5a6268; 
+        }
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #fcc;
+        }
+        .info {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔒 ${sectionName}</h1>
-        <p>이 섹션은 비밀번호로 보호되어 있습니다.</p>
+    <div class="login-container">
+        <div class="icon">🔒</div>
+        <h1>${sectionName}</h1>
+        <p class="subtitle">이 섹션은 비밀번호로 보호되어 있습니다</p>
+        
         ${errorMessage}
-        <button class="refresh-btn" onclick="window.location.reload()">
-            🔑 비밀번호 입력하기
-        </button>
-        <br>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="비밀번호를 입력하세요"
+                    required
+                    autofocus
+                >
+            </div>
+            
+            <button type="submit" class="login-btn">
+                🔑 로그인
+            </button>
+        </form>
+        
         <a href="${GITHUB_PAGES_URL}" class="back-btn">🏠 홈으로 돌아가기</a>
+        
+        <div class="info">
+            비밀번호는 해당 프로젝트 팀 멤버에게 문의하세요
+        </div>
     </div>
+
+    <script>
+        // 엔터키로 로그인
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.target.closest('form').submit();
+            }
+        });
+        
+        // 자동 포커스
+        window.onload = function() {
+            document.getElementById('password').focus();
+        };
+    </script>
 </body>
 </html>`
 }

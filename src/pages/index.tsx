@@ -1,29 +1,33 @@
 import type {ReactNode} from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
+import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
 
 export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
+  const [isLocalhost, setIsLocalhost] = useState(false);
   
   useEffect(() => {
-    // 프로덕션 환경에서만 Workers 사이트로 리다이렉트
-    const isProduction = window.location.hostname !== 'localhost' && 
-                         window.location.hostname !== '127.0.0.1' &&
-                         !window.location.hostname.includes('.local');
-    
-    // Workers 내부 요청인지 확인 (User-Agent 체크)
-    const isWorkerRequest = navigator.userAgent.includes('Cloudflare-Workers-Internal-Request');
-    
-    // 프로덕션이고 Workers 내부 요청이 아닐 때만 리다이렉트
-    if (isProduction && !isWorkerRequest) {
-      window.location.replace('https://shusworkspace-auth.shusworkspace.workers.dev');
+    // 브라우저 환경에서만 실행
+    if (ExecutionEnvironment.canUseDOM) {
+      // 로컬호스트인지 확인
+      const localhost = window.location.hostname === 'localhost' || 
+                       window.location.hostname === '127.0.0.1' ||
+                       window.location.hostname.includes('.local');
+      setIsLocalhost(localhost);
+      
+      // 프로덕션 환경에서만 Workers 사이트로 리다이렉트
+      const isProduction = !localhost;
+      
+      // Workers 내부 요청인지 확인 (User-Agent 체크)
+      const isWorkerRequest = navigator.userAgent.includes('Cloudflare-Workers-Internal-Request');
+      
+      // 프로덕션이고 Workers 내부 요청이 아닐 때만 리다이렉트
+      if (isProduction && !isWorkerRequest) {
+        window.location.replace('https://shusworkspace-auth.shusworkspace.workers.dev');
+      }
     }
   }, []);
-
-  // 로컬 환경에서는 개발용 페이지 표시
-  const isLocalhost = window.location.hostname === 'localhost' || 
-                      window.location.hostname === '127.0.0.1' ||
-                      window.location.hostname.includes('.local');
 
   if (isLocalhost) {
     return (
