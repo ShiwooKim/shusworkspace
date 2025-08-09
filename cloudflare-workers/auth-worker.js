@@ -458,10 +458,10 @@ async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, sectio
         // React 기반 리다이렉트도 제거
       content = content.replace(/if\s*\(\s*isProduction\s*&&\s*!isWorkerRequest\s*&&\s*!isAlreadyOnWorkers\s*\)\s*\{[^}]*window\.location\.replace[^}]*\}/g, '// Conditional redirect disabled for Workers request')
         
-        // 보호된 페이지인 경우 기본 사이드바만 숨기기
-      if (applyCustomSidebar && section) {
-        content = hideDocusaurusSidebar(content)
-      }
+        // 보호된 페이지에서는 기본 사이드바를 숨기고 커스텀 사이드바를 주입
+        if (applyCustomSidebar && section) {
+          content = injectProtectedSidebar(content, section)
+        }
 
         // 주소창 교체가 필요한 경우(오타 경로 등) 초기 로드 전에 경로를 교정
         if (overrideLocationTo) {
@@ -762,6 +762,46 @@ function hideDocusaurusSidebar(htmlContent) {
   )
   
   return finalContent
+}
+
+// 보호된 문서용 커스텀 사이드바 주입
+function injectProtectedSidebar(htmlContent, section) {
+  // 1) 기본 사이드바 숨김 CSS 유지
+  let content = hideDocusaurusSidebar(htmlContent)
+
+  // 2) 좌측에 고정 사이드바 DOM 삽입 (blog 레이아웃 유사)
+  const sidebarHtml = `
+  <style>
+    .protectedSidebarContainer {position: sticky; top: 4rem; align-self: flex-start; width: 260px; max-height: calc(100vh - 5rem); overflow: auto; padding-right: 1rem;}
+    .protectedSidebarCard {border: 1px solid var(--ifm-toc-border-color); border-radius: 8px; padding: 12px; background: var(--ifm-background-surface-color);} 
+    .protectedSidebarCard h4 {margin: 0 0 8px 0; font-size: 0.95rem;}
+    .protectedSidebarList {list-style: none; padding: 0; margin: 0;}
+    .protectedSidebarList li {margin: 6px 0;}
+    .protectedSidebarList a {text-decoration: none; font-size: 0.9rem;}
+  </style>
+  <div class="protectedSidebarContainer">
+    <div class="protectedSidebarCard">
+      <h4>섹션 탐색</h4>
+      <ul class="protectedSidebarList">
+        <li><a href="/shusworkspace/docs/${section}/intro/">소개</a></li>
+      </ul>
+      <hr/>
+      <a href="/shusworkspace/docs/intro">📋 Public Docs</a>
+    </div>
+  </div>`
+
+  // 3) 문서 본문 좌우 레이아웃에 사이드바 삽입: docMainContainer 앞에 열을 추가
+  content = content.replace(
+    /<div class="row docMainContainer_[^"]+">/,
+    match => `${match}\n<div class="col col--3">${sidebarHtml}</div>`
+  )
+  // 4) 본문 영역을 9컬럼으로 축소
+  content = content.replace(
+    /<div class="col col--[0-9]+ docItemCol_[^"]+">/,
+    '<div class="col col--9 docItemCol_injected">'
+  )
+
+  return content
 }
 
 
