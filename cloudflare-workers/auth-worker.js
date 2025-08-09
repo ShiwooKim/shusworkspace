@@ -38,16 +38,10 @@ async function handleRequest(request) {
   const url = new URL(request.url)
   let pathname = url.pathname
 
-  // 강력한 1차 타이포 교정: /workspac/e -> /workspace (baseUrl 유무 모두)
-  const typoFixed = pathname.replace(/\/(workspac)\/e(\/|$)/, '/workspace$2')
-  if (typoFixed !== pathname) {
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: `${url.origin}${typoFixed}`,
-        'Cache-Control': 'no-store'
-      }
-    })
+  // 강력한 1차 타이포 교정: /workspac/e -> 워크스페이스 인트로로 직접 이동 (baseUrl 유무 모두)
+  if (/\/(workspac)\/e(\/|$)/.test(pathname)) {
+    const target = `${url.origin}/shusworkspace/docs/workspace/intro/`
+    return new Response(null, { status: 302, headers: { Location: target, 'Cache-Control': 'no-store' } })
   }
 
   // 0) 잘못 분리된 섹션 경로 교정: /workspac/e, /project-/a, /project-/c 등
