@@ -117,27 +117,39 @@ async function handleRequest(request) {
   
   // POST 요청인 경우 로그인 폼에서 제출된 데이터 처리
   if (request.method === 'POST') {
+    console.log(`[DEBUG] POST request to ${pathname} - processing password`)
     const formData = await request.formData()
     const password = formData.get('password')
     const requiredPassword = PASSWORDS[protectedPath]
+    
+    console.log(`[DEBUG] Password check: provided="${password}", required="${requiredPassword}", match=${password === requiredPassword}`)
     
     if (password === requiredPassword) {
       // 인증 성공 시 쿠키 설정하고 페이지 제공
       // 폴더 경로를 intro 페이지로 매핑 (GitHub Pages는 슬래시 필요)
       let actualPath = pathname
-      if (pathname.endsWith('/docs/workspace/')) {
+      if (pathname.endsWith('/docs/workspace/') || pathname === '/docs/workspace') {
         actualPath = '/shusworkspace/docs/workspace/intro/'
-      } else if (pathname.endsWith('/docs/private/')) {
+      } else if (pathname.endsWith('/docs/private/') || pathname === '/docs/private') {
         actualPath = '/shusworkspace/docs/private/intro/'
-      } else if (pathname.endsWith('/docs/project-a/')) {
+      } else if (pathname.endsWith('/docs/project-a/') || pathname === '/docs/project-a') {
         actualPath = '/shusworkspace/docs/project-a/intro/'
-      } else if (pathname.endsWith('/docs/project-c/')) {
+      } else if (pathname.endsWith('/docs/project-c/') || pathname === '/docs/project-c') {
         actualPath = '/shusworkspace/docs/project-c/intro/'
       }
       
       console.log(`[DEBUG] Auth success - mapping ${pathname} to ${actualPath}`)
-      const response = await fetchFromGitHubPages(actualPath)
-      response.headers.set('Set-Cookie', `auth_${protectedPath.replace(/\//g, '_')}=${password}; Path=${protectedPath}; HttpOnly; SameSite=Strict; Max-Age=3600`)
+      
+      // React Hydration 에러를 피하기 위해 정적 성공 페이지 반환 후 리다이렉트
+      const sectionName = getSectionName(protectedPath)
+      const successPage = getSuccessPage(actualPath, sectionName)
+      const response = new Response(successPage, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Set-Cookie': `auth_${protectedPath.replace(/\//g, '_')}=${password}; Path=${protectedPath}; HttpOnly; SameSite=Strict; Max-Age=3600`
+        }
+      })
       return response
     } else {
       // 비밀번호 틀림
@@ -157,14 +169,25 @@ async function handleRequest(request) {
   if (cookies.includes(authCookie)) {
     // 이미 인증됨 - 경로 매핑 적용 (GitHub Pages는 슬래시 필요)
     let actualPath = pathname
-    if (pathname.endsWith('/docs/workspace/')) {
+    if (pathname.endsWith('/docs/workspace/') || pathname === '/docs/workspace') {
       actualPath = '/shusworkspace/docs/workspace/intro/'
-    } else if (pathname.endsWith('/docs/private/')) {
+    } else if (pathname.endsWith('/docs/private/') || pathname === '/docs/private') {
       actualPath = '/shusworkspace/docs/private/intro/'
-    } else if (pathname.endsWith('/docs/project-a/')) {
+    } else if (pathname.endsWith('/docs/project-a/') || pathname === '/docs/project-a') {
       actualPath = '/shusworkspace/docs/project-a/intro/'
-    } else if (pathname.endsWith('/docs/project-c/')) {
+    } else if (pathname.endsWith('/docs/project-c/') || pathname === '/docs/project-c') {
       actualPath = '/shusworkspace/docs/project-c/intro/'
+    } else if (pathname.includes('/docs/workspace/intro')) {
+      actualPath = '/shusworkspace/docs/workspace/intro/'
+    } else if (pathname.includes('/docs/private/intro')) {
+      actualPath = '/shusworkspace/docs/private/intro/'
+    } else if (pathname.includes('/docs/project-a/intro')) {
+      actualPath = '/shusworkspace/docs/project-a/intro/'
+    } else if (pathname.includes('/docs/project-c/intro')) {
+      actualPath = '/shusworkspace/docs/project-c/intro/'
+    } else {
+      // 보호된 경로 내의 다른 페이지들도 baseURL 추가
+      actualPath = `/shusworkspace${pathname}`
     }
     
     console.log(`[DEBUG] Authenticated access - mapping ${pathname} to ${actualPath}`)
@@ -302,8 +325,11 @@ async function fetchFromGitHubPages(pathname) {
       }
     })
     
+    console.log(`[DEBUG] GitHub Pages response for ${githubUrl}: status=${response.status}, statusText=${response.statusText}`)
+    
     if (!response.ok) {
-      return new Response(`Content not found: ${githubUrl}`, { status: 404 })
+      console.log(`[DEBUG] GitHub Pages response failed: ${response.status} ${response.statusText}`)
+      return new Response(`Content not found: ${githubUrl} (Status: ${response.status})`, { status: 404 })
     }
     
     // 응답 내용을 가져와서 URL을 수정
@@ -344,6 +370,77 @@ async function fetchFromGitHubPages(pathname) {
   }
 }
 
+// 인증 성공 후 리다이렉트 페이지 HTML (React Hydration 에러 방지)
+function getSuccessPage(targetUrl, sectionName) {
+  return `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ 로그인 성공 - ${sectionName}</title>
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            margin: 0; padding: 20px; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+        }
+        .success-container {
+            background: white; padding: 3rem; border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center; max-width: 500px; width: 100%;
+            color: #333;
+        }
+        .icon { font-size: 4rem; margin-bottom: 1rem; color: #28a745; }
+        h1 { color: #28a745; margin-bottom: 1rem; font-size: 1.8rem; }
+        .message { color: #666; margin-bottom: 2rem; line-height: 1.6; }
+        .progress-bar {
+            width: 100%; height: 6px; background: #e9ecef;
+            border-radius: 3px; overflow: hidden; margin: 1.5rem 0;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%; border-radius: 3px;
+            animation: progress 2s ease-out forwards;
+        }
+        @keyframes progress {
+            to { width: 100%; }
+        }
+        .redirect-note { 
+            font-size: 0.9rem; color: #999; margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="icon">🎉</div>
+        <h1>로그인 성공!</h1>
+        <p class="message">
+            <strong>${sectionName}</strong> 섹션에 성공적으로 접근했습니다.<br>
+            잠시 후 자동으로 페이지로 이동합니다.
+        </p>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <p class="redirect-note">
+            자동으로 이동하지 않으면 <a href="https://shiwookim.github.io${targetUrl}">여기를 클릭</a>하세요.
+        </p>
+    </div>
+    
+    <script>
+        // 2초 후 GitHub Pages로 직접 리다이렉트 (Workers 우회)
+        setTimeout(function() {
+            window.location.href = 'https://shiwookim.github.io${targetUrl}';
+        }, 2000);
+    </script>
+</body>
+</html>`
+}
+
 // 커스텀 로그인 폼 페이지 HTML
 function getLoginPage(path, isError = false) {
   const sectionName = getSectionName(path)
@@ -356,6 +453,14 @@ function getLoginPage(path, isError = false) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔒 ${sectionName} - 접근 제한</title>
+    <meta name="robots" content="noindex, nofollow">
+    <!-- React와 Docusaurus 스크립트 차단 -->
+    <script>
+        // Docusaurus/React 초기화 방지
+        window.__DOCUSAURUS_INSERT_HYDRATION_ERROR__ = true;
+        window.React = undefined;
+        window.ReactDOM = undefined;
+    </script>
     <style>
         * {
             box-sizing: border-box;
@@ -369,6 +474,13 @@ function getLoginPage(path, isError = false) {
             display: flex;
             align-items: center;
             justify-content: center;
+            /* Docusaurus CSS 오버라이드 */
+            line-height: inherit !important;
+            color: inherit !important;
+        }
+        /* Docusaurus 및 React 관련 요소 숨기기 */
+        #__docusaurus, [data-reactroot], .navbar, .footer, .theme-doc-sidebar-container {
+            display: none !important;
         }
         .login-container {
             background: white;
@@ -473,7 +585,7 @@ function getLoginPage(path, isError = false) {
         
         ${errorMessage}
         
-        <form method="POST">
+        <form method="POST" action="${path}">
             <div class="form-group">
                 <label for="password">비밀번호</label>
                 <input 
@@ -491,6 +603,41 @@ function getLoginPage(path, isError = false) {
             </button>
         </form>
         
+        <script>
+        // React의 간섭 없이 순수 HTML 폼으로 작동하도록 
+        window.addEventListener('load', function() {
+            const form = document.querySelector('form');
+            const passwordField = document.getElementById('password');
+            
+            console.log('Form setup complete');
+            
+            form.addEventListener('submit', function(e) {
+                console.log('Form submitted!', e);
+                console.log('Action:', this.action);
+                console.log('Method:', this.method);
+                console.log('Password field value:', passwordField.value);
+                
+                // React 간섭 방지를 위해 명시적으로 폼 제출
+                if (!passwordField.value.trim()) {
+                    e.preventDefault();
+                    alert('비밀번호를 입력해주세요.');
+                    return false;
+                }
+            });
+            
+            // 엔터키 이벤트도 다시 등록
+            passwordField.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+            
+            // 자동 포커스
+            passwordField.focus();
+        });
+        </script>
+        
         <a href="${GITHUB_PAGES_URL}" class="back-btn">🏠 홈으로 돌아가기</a>
         
         <div class="info">
@@ -498,19 +645,7 @@ function getLoginPage(path, isError = false) {
         </div>
     </div>
 
-    <script>
-        // 엔터키로 로그인
-        document.getElementById('password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.target.closest('form').submit();
-            }
-        });
-        
-        // 자동 포커스
-        window.onload = function() {
-            document.getElementById('password').focus();
-        };
-    </script>
+
 </body>
 </html>`
 }
