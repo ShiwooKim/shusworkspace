@@ -212,7 +212,7 @@ async function handleRequest(request) {
       return new Response(null, {
         status: 302,
         headers: {
-          Location: actualPath,
+          Location: `${url.origin}${actualPath}`,
           'Set-Cookie': `auth_${normalizePath(protectedPath).replace(/\//g, '_')}=${password}; Path=/shusworkspace${normalizePath(protectedPath)}; HttpOnly; SameSite=Strict; Max-Age=3600`
         }
       })
@@ -251,7 +251,7 @@ async function handleRequest(request) {
     console.log(`[DEBUG] Authenticated access - mapping ${pathname} -> ${normalizedPathname} -> ${actualPath}`)
     // 이미 정규 경로라면 직접 페치, 아니면 302로 보정
     if (pathname !== actualPath) {
-      return Response.redirect(actualPath, 302)
+      return Response.redirect(`${url.origin}${actualPath}`, 302)
     }
     const sectionName = getSectionFromPath(canonicalPath)
     return await fetchFromGitHubPages(actualPath, true, sectionName)
