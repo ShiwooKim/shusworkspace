@@ -458,9 +458,9 @@ async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, sectio
         // React 기반 리다이렉트도 제거
       content = content.replace(/if\s*\(\s*isProduction\s*&&\s*!isWorkerRequest\s*&&\s*!isAlreadyOnWorkers\s*\)\s*\{[^}]*window\.location\.replace[^}]*\}/g, '// Conditional redirect disabled for Workers request')
         
-        // 보호된 페이지에서는 기본 사이드바를 숨기고 커스텀 사이드바를 주입
+        // 보호된 페이지에서는 기본 Docusaurus 사이드바만 숨김 (커스텀 주입 없음)
         if (applyCustomSidebar && section) {
-          content = injectProtectedSidebar(content, section)
+          content = hideDocusaurusSidebar(content)
         }
 
         // 주소창 교체가 필요한 경우(오타 경로 등) 초기 로드 전에 경로를 교정
@@ -765,37 +765,6 @@ function hideDocusaurusSidebar(htmlContent) {
 }
 
 // 보호된 문서용 커스텀 사이드바 주입
-function injectProtectedSidebar(htmlContent, section) {
-  // 1) 기본 사이드바 숨김 CSS 유지
-  let content = hideDocusaurusSidebar(htmlContent)
-
-  // 2) 화면 좌측에 고정 사이드바를 전역으로 주입 (DOM 구조 의존 최소화)
-  const fixedSidebar = `
-  <style>
-    .protectedSidebarFixed {position: fixed; top: var(--ifm-navbar-height, 60px); left: 0; width: 250px; bottom: 0; overflow: auto; padding: 12px; border-right: 1px solid var(--ifm-toc-border-color); background: var(--ifm-background-surface-color); z-index: 100;}
-    .protectedSidebarFixed h4 {margin: 6px 0 10px 0; font-size: 0.95rem;}
-    .protectedSidebarFixed ul {list-style: none; padding: 0; margin: 0 0 8px 0;}
-    .protectedSidebarFixed li {margin: 6px 0;}
-    .protectedSidebarFixed a {text-decoration: none; font-size: 0.9rem;}
-    /* 본문 좌측 여백 확보: docMainContainer, container 계열에 패딩 부여 */
-    [class*="docMainContainer_"], .container { padding-left: 270px !important; }
-    @media (max-width: 996px) {
-      .protectedSidebarFixed { display: none; }
-      [class*="docMainContainer_"], .container { padding-left: 0 !important; }
-    }
-  </style>
-  <div class="protectedSidebarFixed">
-    <h4>섹션 탐색</h4>
-    <ul>
-      <li><a href="/shusworkspace/docs/${section}/intro/">소개</a></li>
-    </ul>
-    <a href="/shusworkspace/docs/intro">📋 Public Docs</a>
-  </div>`
-
-  // body 열자마자 주입해 레이아웃 적용을 보장
-  content = content.replace('<body>', `<body>\n${fixedSidebar}`)
-
-  return content
-}
+// 주입형 커스텀 사이드바는 사용하지 않음
 
 
