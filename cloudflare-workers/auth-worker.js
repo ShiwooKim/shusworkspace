@@ -769,37 +769,31 @@ function injectProtectedSidebar(htmlContent, section) {
   // 1) 기본 사이드바 숨김 CSS 유지
   let content = hideDocusaurusSidebar(htmlContent)
 
-  // 2) 좌측에 고정 사이드바 DOM 삽입 (blog 레이아웃 유사)
-  const sidebarHtml = `
+  // 2) 화면 좌측에 고정 사이드바를 전역으로 주입 (DOM 구조 의존 최소화)
+  const fixedSidebar = `
   <style>
-    .protectedSidebarContainer {position: sticky; top: 4rem; align-self: flex-start; width: 260px; max-height: calc(100vh - 5rem); overflow: auto; padding-right: 1rem;}
-    .protectedSidebarCard {border: 1px solid var(--ifm-toc-border-color); border-radius: 8px; padding: 12px; background: var(--ifm-background-surface-color);} 
-    .protectedSidebarCard h4 {margin: 0 0 8px 0; font-size: 0.95rem;}
-    .protectedSidebarList {list-style: none; padding: 0; margin: 0;}
-    .protectedSidebarList li {margin: 6px 0;}
-    .protectedSidebarList a {text-decoration: none; font-size: 0.9rem;}
+    .protectedSidebarFixed {position: fixed; top: var(--ifm-navbar-height, 60px); left: 0; width: 250px; bottom: 0; overflow: auto; padding: 12px; border-right: 1px solid var(--ifm-toc-border-color); background: var(--ifm-background-surface-color); z-index: 100;}
+    .protectedSidebarFixed h4 {margin: 6px 0 10px 0; font-size: 0.95rem;}
+    .protectedSidebarFixed ul {list-style: none; padding: 0; margin: 0 0 8px 0;}
+    .protectedSidebarFixed li {margin: 6px 0;}
+    .protectedSidebarFixed a {text-decoration: none; font-size: 0.9rem;}
+    /* 본문 좌측 여백 확보: docMainContainer, container 계열에 패딩 부여 */
+    [class*="docMainContainer_"], .container { padding-left: 270px !important; }
+    @media (max-width: 996px) {
+      .protectedSidebarFixed { display: none; }
+      [class*="docMainContainer_"], .container { padding-left: 0 !important; }
+    }
   </style>
-  <div class="protectedSidebarContainer">
-    <div class="protectedSidebarCard">
-      <h4>섹션 탐색</h4>
-      <ul class="protectedSidebarList">
-        <li><a href="/shusworkspace/docs/${section}/intro/">소개</a></li>
-      </ul>
-      <hr/>
-      <a href="/shusworkspace/docs/intro">📋 Public Docs</a>
-    </div>
+  <div class="protectedSidebarFixed">
+    <h4>섹션 탐색</h4>
+    <ul>
+      <li><a href="/shusworkspace/docs/${section}/intro/">소개</a></li>
+    </ul>
+    <a href="/shusworkspace/docs/intro">📋 Public Docs</a>
   </div>`
 
-  // 3) 문서 본문 좌우 레이아웃에 사이드바 삽입: docMainContainer 앞에 열을 추가
-  content = content.replace(
-    /<div class="row docMainContainer_[^"]+">/,
-    match => `${match}\n<div class="col col--3">${sidebarHtml}</div>`
-  )
-  // 4) 본문 영역을 9컬럼으로 축소
-  content = content.replace(
-    /<div class="col col--[0-9]+ docItemCol_[^"]+">/,
-    '<div class="col col--9 docItemCol_injected">'
-  )
+  // body 열자마자 주입해 레이아웃 적용을 보장
+  content = content.replace('<body>', `<body>\n${fixedSidebar}`)
 
   return content
 }
