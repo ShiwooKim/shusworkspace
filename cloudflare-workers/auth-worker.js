@@ -1,6 +1,14 @@
 // Cloudflare Workers 스크립트 - GitHub Pages 프록시 + 접근 제어
 addEventListener('fetch', event => {
-  event.respondWith(handleRequest(event.request))
+  event.respondWith(
+    (async () => {
+      try {
+        return await handleRequest(event.request)
+      } catch (err) {
+        return new Response(`Worker error: ${err && err.message ? err.message : String(err)}`, { status: 500 })
+      }
+    })()
+  )
 })
 
 // GitHub Pages 원본 URL
