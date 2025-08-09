@@ -12,10 +12,18 @@ const PASSWORDS = {
   '/docs/workspace': 'workspace456',       // Workspace 전체
   '/docs/project-a': 'projectA789',        // Project A 전체
   '/docs/project-c': 'projectC101',        // Project C 전체
+  '/docs/category/-private': 'private123',       // Private Notes 카테고리
+  '/docs/category/-workspace': 'workspace456',   // Workspace 카테고리
+  '/docs/category/-project-a': 'projectA789',    // Project A 카테고리
+  '/docs/category/-project-c': 'projectC101',    // Project C 카테고리
   '/shusworkspace/docs/private': 'private123',           // Private Notes 전체 (baseURL 포함)
   '/shusworkspace/docs/workspace': 'workspace456',       // Workspace 전체 (baseURL 포함)
   '/shusworkspace/docs/project-a': 'projectA789',        // Project A 전체 (baseURL 포함)
-  '/shusworkspace/docs/project-c': 'projectC101'         // Project C 전체 (baseURL 포함)
+  '/shusworkspace/docs/project-c': 'projectC101',        // Project C 전체 (baseURL 포함)
+  '/shusworkspace/docs/category/-private': 'private123',       // Private Notes 카테고리 (baseURL 포함)
+  '/shusworkspace/docs/category/-workspace': 'workspace456',   // Workspace 카테고리 (baseURL 포함)
+  '/shusworkspace/docs/category/-project-a': 'projectA789',    // Project A 카테고리 (baseURL 포함)
+  '/shusworkspace/docs/category/-project-c': 'projectC101'     // Project C 카테고리 (baseURL 포함)
 }
 
 async function handleRequest(request) {
