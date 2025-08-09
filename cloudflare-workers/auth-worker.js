@@ -349,9 +349,9 @@ async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, sectio
       // React 기반 리다이렉트도 제거
       content = content.replace(/if\s*\(\s*isProduction\s*&&\s*!isWorkerRequest\s*&&\s*!isAlreadyOnWorkers\s*\)\s*\{[^}]*window\.location\.replace[^}]*\}/g, '// Conditional redirect disabled for Workers request')
       
-      // 보호된 페이지인 경우 커스텀 사이드바 적용
+      // 보호된 페이지인 경우 기본 사이드바만 숨기기
       if (applyCustomSidebar && section) {
-        content = injectCustomSidebar(content, section)
+        content = hideDocusaurusSidebar(content)
       }
     }
     
@@ -603,216 +603,50 @@ function getSectionFromPath(path) {
   return sections[path] || 'workspace'
 }
 
-function injectCustomSidebar(htmlContent, section) {
-  // 커스텀 사이드바 HTML
-  const customSidebar = generateCustomSidebar(section)
+function hideDocusaurusSidebar(htmlContent) {
+  // React Hydration 충돌을 피하기 위해 단순히 CSS로 사이드바만 숨김
+  const hideCSS = `
+  <style>
+  /* Docusaurus 기본 사이드바 숨기기 */
+  .theme-doc-sidebar-container {
+    display: none !important;
+  }
   
-  // 기존 Docusaurus 컨테이너를 찾아서 래핑
-  const wrappedContent = htmlContent.replace(
-    /<main[^>]*>([\s\S]*?)<\/main>/i,
-    `<div class="doc-wrapper">
-      ${customSidebar}
-      <div class="main-content">
-        <main$1>$2</main>
-      </div>
-    </div>`
-  )
+  /* 메인 콘텐츠를 전체 폭으로 확장 */
+  .docMainContainer_m8Cb {
+    max-width: none !important;
+  }
   
-  // CSS 스타일 추가
-  const customCSS = generateCustomCSS()
-  const finalContent = wrappedContent.replace(
+  .container {
+    max-width: 1200px !important;
+  }
+  
+  /* 보호된 페이지임을 나타내는 간단한 헤더 추가 */
+  .theme-doc-markdown::before {
+    content: "🔒 보호된 문서";
+    display: block;
+    background: #e7f5ff;
+    padding: 0.5rem 1rem;
+    margin: -1rem -1rem 2rem -1rem;
+    border-left: 4px solid #228be6;
+    color: #1971c2;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  [data-theme='dark'] .theme-doc-markdown::before {
+    background: #1e3a8a;
+    color: #93c5fd;
+    border-left-color: #3b82f6;
+  }
+  </style>`
+  
+  const finalContent = htmlContent.replace(
     '</head>',
-    `${customCSS}</head>`
+    `${hideCSS}</head>`
   )
   
   return finalContent
 }
 
-function generateCustomSidebar(currentSection) {
-  const activeClass = (section) => section === currentSection ? 'active' : ''
-  
-  return `
-  <div class="custom-sidebar">
-    <div class="sidebar-header">
-      <h3>📚 문서 목록</h3>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section">
-        <h4>💼 Workspace</h4>
-        <ul>
-          <li class="${activeClass('workspace')}">
-            <a href="/docs/workspace/">소개</a>
-          </li>
-        </ul>
-      </div>
-      <div class="nav-section">
-        <h4>🔒 Private Notes</h4>
-        <ul>
-          <li class="${activeClass('private')}">
-            <a href="/docs/private/">소개</a>
-          </li>
-        </ul>
-      </div>
-      <div class="nav-section">
-        <h4>🚀 Projects</h4>
-        <ul>
-          <li class="${activeClass('project-a')}">
-            <a href="/docs/project-a/">Project A</a>
-          </li>
-          <li class="${activeClass('project-c')}">
-            <a href="/docs/project-c/">Project C</a>
-          </li>
-        </ul>
-      </div>
-      <div class="nav-section home-link">
-        <a href="https://shiwookim.github.io/shusworkspace/docs/intro">📋 Public Docs</a>
-      </div>
-    </nav>
-  </div>`
-}
 
-function generateCustomCSS() {
-  return `
-  <style>
-  .doc-wrapper {
-    display: flex;
-    gap: 2rem;
-    margin: -2rem;
-    min-height: calc(100vh - 60px);
-  }
-
-  .custom-sidebar {
-    width: 300px;
-    background: var(--ifm-background-surface-color, #f8f9fa);
-    padding: 1.5rem;
-    border-right: 1px solid var(--ifm-toc-border-color, #e9ecef);
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-  }
-
-  .sidebar-header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--ifm-toc-border-color, #e9ecef);
-  }
-
-  .sidebar-header h3 {
-    margin: 0;
-    color: var(--ifm-color-primary, #495057);
-  }
-
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .nav-section h4 {
-    margin: 0 0 0.5rem 0;
-    color: var(--ifm-color-primary, #495057);
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .nav-section ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .nav-section li {
-    margin: 0.3rem 0;
-  }
-
-  .nav-section li a {
-    display: block;
-    padding: 0.5rem 1rem;
-    color: var(--ifm-font-color-base, #495057);
-    text-decoration: none;
-    border-radius: 6px;
-    transition: all 0.2s;
-  }
-
-  .nav-section li a:hover {
-    background: var(--ifm-hover-overlay, #e9ecef);
-    color: var(--ifm-color-primary, #228be6);
-  }
-
-  .nav-section li.active a {
-    background: var(--ifm-color-primary, #228be6);
-    color: var(--ifm-font-color-base-inverse, white);
-    font-weight: 600;
-  }
-
-  .home-link {
-    margin-top: auto;
-    padding-top: 1rem;
-    border-top: 1px solid var(--ifm-toc-border-color, #e9ecef);
-  }
-
-  .home-link a {
-    display: block;
-    padding: 0.8rem 1rem;
-    color: var(--ifm-font-color-base, #495057);
-    text-decoration: none;
-    border-radius: 6px;
-    transition: all 0.2s;
-    text-align: center;
-    background: var(--ifm-hover-overlay, #e9ecef);
-  }
-
-  .home-link a:hover {
-    background: var(--ifm-color-primary, #228be6);
-    color: var(--ifm-font-color-base-inverse, white);
-  }
-
-  .main-content {
-    flex: 1;
-    padding: 2rem;
-    max-width: 900px;
-  }
-
-  /* 다크 모드 지원 */
-  [data-theme='dark'] .custom-sidebar {
-    background: #1b1b1d;
-    border-right-color: #2d2d2d;
-  }
-
-  [data-theme='dark'] .sidebar-header {
-    border-bottom-color: #2d2d2d;
-  }
-
-  [data-theme='dark'] .sidebar-header h3,
-  [data-theme='dark'] .nav-section h4,
-  [data-theme='dark'] .nav-section li a {
-    color: #e9ecef;
-  }
-
-  [data-theme='dark'] .nav-section li a:hover {
-    background: #2d2d2d;
-    color: #74c0fc;
-  }
-
-  [data-theme='dark'] .nav-section li.active a {
-    background: #1c7ed6;
-    color: white;
-  }
-
-  [data-theme='dark'] .home-link {
-    border-top-color: #2d2d2d;
-  }
-
-  [data-theme='dark'] .home-link a {
-    background: #2d2d2d;
-    color: #e9ecef;
-  }
-
-  [data-theme='dark'] .home-link a:hover {
-    background: #343a40;
-    color: #74c0fc;
-  }
-  </style>`
-}
