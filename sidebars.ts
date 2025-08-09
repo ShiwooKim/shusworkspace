@@ -5,25 +5,25 @@ const WORKER_URL = 'https://shusworkspace-auth.shusworkspace.workers.dev';
 const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'intro', // Public Docs
-    {
+  {
       type: 'link',
       label: '💼 Workspace',
-      href: `${WORKER_URL}/shusworkspace/docs/workspace/`,
+      href: `${WORKER_URL}/docs/workspace/`,
     },
     {
       type: 'link',
       label: '🔒 Private Notes',
-      href: `${WORKER_URL}/shusworkspace/docs/private/`,
+      href: `${WORKER_URL}/docs/private/`,
     },
     {
       type: 'link',
       label: '🚀 Project A',
-      href: `${WORKER_URL}/shusworkspace/docs/project-a/`,
+      href: `${WORKER_URL}/docs/project-a/`,
     },
     {
       type: 'link',
       label: '🚀 Project C',
-      href: `${WORKER_URL}/shusworkspace/docs/project-c/`,
+      href: `${WORKER_URL}/docs/project-c/`,
     }
   ],
 };

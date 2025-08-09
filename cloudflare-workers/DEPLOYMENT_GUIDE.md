@@ -45,7 +45,7 @@ wrangler secret put PROJECT_C_PASSWORD
 ### 옵션 A: GitHub Pages 도메인 사용
 ```
 1. Workers 대시보드에서 Routes 설정
-2. Pattern: shiwookim.github.io/shusworkspace/*
+2. Pattern: shiwookim.github.io/sws/*
 3. Worker: 배포한 Workers 선택
 ```
 

@@ -12,7 +12,7 @@ addEventListener('fetch', event => {
 })
 
 // GitHub Pages 원본 URL
-const GITHUB_PAGES_URL = 'https://shiwookim.github.io/shusworkspace'
+const GITHUB_PAGES_URL = 'https://shiwookim.github.io/sws'
 
 // 각 섹션별 비밀번호 설정
 const PASSWORDS = {
@@ -24,14 +24,14 @@ const PASSWORDS = {
   '/docs/category/-workspace': 'workspace456',   // Workspace 카테고리
   '/docs/category/-project-a': 'projectA789',    // Project A 카테고리
   '/docs/category/-project-c': 'projectC101',    // Project C 카테고리
-  '/shusworkspace/docs/private': 'private123',           // Private Notes 전체 (baseURL 포함)
-  '/shusworkspace/docs/workspace': 'workspace456',       // Workspace 전체 (baseURL 포함)
-  '/shusworkspace/docs/project-a': 'projectA789',        // Project A 전체 (baseURL 포함)
-  '/shusworkspace/docs/project-c': 'projectC101',        // Project C 전체 (baseURL 포함)
-  '/shusworkspace/docs/category/-private': 'private123',       // Private Notes 카테고리 (baseURL 포함)
-  '/shusworkspace/docs/category/-workspace': 'workspace456',   // Workspace 카테고리 (baseURL 포함)
-  '/shusworkspace/docs/category/-project-a': 'projectA789',    // Project A 카테고리 (baseURL 포함)
-  '/shusworkspace/docs/category/-project-c': 'projectC101'     // Project C 카테고리 (baseURL 포함)
+  '/sws/docs/private': 'private123',           // Private Notes 전체 (baseURL 포함)
+  '/sws/docs/workspace': 'workspace456',       // Workspace 전체 (baseURL 포함)
+  '/sws/docs/project-a': 'projectA789',        // Project A 전체 (baseURL 포함)
+  '/sws/docs/project-c': 'projectC101',        // Project C 전체 (baseURL 포함)
+  '/sws/docs/category/-private': 'private123',       // Private Notes 카테고리 (baseURL 포함)
+  '/sws/docs/category/-workspace': 'workspace456',   // Workspace 카테고리 (baseURL 포함)
+  '/sws/docs/category/-project-a': 'projectA789',    // Project A 카테고리 (baseURL 포함)
+  '/sws/docs/category/-project-c': 'projectC101'     // Project C 카테고리 (baseURL 포함)
 }
 
 async function handleRequest(request) {
@@ -41,19 +41,19 @@ async function handleRequest(request) {
   // 강력한 1차 타이포 교정: /workspac/e -> 워크스페이스 인트로로 직접 이동 (baseUrl 유무 모두)
   if (/\/(workspac)\/e(\/|$)/.test(pathname)) {
     // 주소창은 잘못되어 있어도, 바로 올바른 컨텐츠를 200으로 반환 + 주소창 보정
-    return await fetchFromGitHubPages('/shusworkspace/docs/workspace/intro/', true, 'workspace', '/shusworkspace/docs/workspace/intro/')
+    return await fetchFromGitHubPages('/sws/docs/workspace/intro/', true, 'workspace', '/sws/docs/workspace/intro/')
   }
 
   // private 오타: /privat/e -> private/intro
-  if (/\/(privat)\/e(\/|$)/.test(pathname)) {
-    return await fetchFromGitHubPages('/shusworkspace/docs/private/intro/', true, 'private', '/shusworkspace/docs/private/intro/')
+  if (/(\/)(privat)(\/e)(\/|$)/.test(pathname)) {
+    return await fetchFromGitHubPages('/sws/docs/private/intro/', true, 'private', '/sws/docs/private/intro/')
   }
 
   // project 오타: /project-/a|c -> project-a|c/intro
   const projectSplit = pathname.match(/\/project-\/(a|c)(\/|$)/)
   if (projectSplit) {
     const proj = projectSplit[1] === 'a' ? 'project-a' : 'project-c'
-    return await fetchFromGitHubPages(`/shusworkspace/docs/${proj}/intro/`, true, proj, `/shusworkspace/docs/${proj}/intro/`)
+    return await fetchFromGitHubPages(`/sws/docs/${proj}/intro/`, true, proj, `/sws/docs/${proj}/intro/`)
   }
 
   // 0) 잘못 분리된 섹션 경로 교정: /workspac/e, /project-/a, /project-/c 등
@@ -62,7 +62,7 @@ async function handleRequest(request) {
       const original = p
       const [pathOnly, searchHash] = p.split(/([?#].*)/, 2)
       const parts = pathOnly.replace(/^\/+/, '').split('/')
-      const hasBase = parts[0] === 'shusworkspace'
+      const hasBase = parts[0] === 'sws'
       const idxDocs = hasBase ? 1 : 0
       if (parts[idxDocs] !== 'docs') return original
       const idxSection = idxDocs + 1
@@ -91,9 +91,9 @@ async function handleRequest(request) {
     })
   }
   
-  // 루트 경로 접근 시 /shusworkspace/로 리다이렉트
+  // 루트 경로 접근 시 /sws/로 리다이렉트
   if (pathname === '/') {
-    return Response.redirect(`${url.origin}/shusworkspace/`, 302)
+    return Response.redirect(`${url.origin}/sws/`, 302)
   }
   
   // 로그아웃 경로 - 모든 인증 쿠키 삭제
@@ -168,8 +168,8 @@ async function handleRequest(request) {
   // 보호되지 않은 경로 처리
   if (!protectedPath) {
     // 루트 경로의 경우 GitHub Pages에서 홈페이지 콘텐츠를 가져와서 표시
-    if (pathname === '/' || pathname === '' || pathname === '/shusworkspace/' || pathname === '/shusworkspace') {
-      return await fetchFromGitHubPages('/shusworkspace/')
+    if (pathname === '/' || pathname === '' || pathname === '/sws/' || pathname === '/sws') {
+      return await fetchFromGitHubPages('/sws/')
     }
     
     // 다른 공개 경로들은 GitHub Pages에서 가져오기
@@ -181,8 +181,8 @@ async function handleRequest(request) {
     try {
       if (!p || p === '/') return '/'
       // baseUrl 중복 제거
-      if (p.startsWith('/shusworkspace/')) {
-        p = p.replace(/^\/shusworkspace/, '')
+      if (p.startsWith('/sws/')) {
+        p = p.replace(/^\/sws/, '')
       }
       // 카테고리/-slug 와 섹션 루트는 슬래시로 마무리
       if (/^\/docs\/(workspace|private|project-a|project-c)(\/.*)?$/.test(p)) {
@@ -214,15 +214,15 @@ async function handleRequest(request) {
       const normalizedPathname = normalizePath(pathname)
       let actualPath
       if (normalizedPathname === '/docs/workspace/' ) {
-        actualPath = '/shusworkspace/docs/workspace/intro/'
+        actualPath = '/sws/docs/workspace/intro/'
       } else if (normalizedPathname === '/docs/private/' ) {
-        actualPath = '/shusworkspace/docs/private/intro/'
+        actualPath = '/sws/docs/private/intro/'
       } else if (normalizedPathname === '/docs/project-a/' ) {
-        actualPath = '/shusworkspace/docs/project-a/intro/'
+        actualPath = '/sws/docs/project-a/intro/'
       } else if (normalizedPathname === '/docs/project-c/' ) {
-        actualPath = '/shusworkspace/docs/project-c/intro/'
+        actualPath = '/sws/docs/project-c/intro/'
       } else {
-        actualPath = `/shusworkspace${normalizedPathname}`
+        actualPath = `/sws${normalizedPathname}`
       }
       
       console.log(`[DEBUG] Auth success - mapping ${pathname} to ${actualPath}`)
@@ -234,7 +234,7 @@ async function handleRequest(request) {
         status: 302,
         headers: {
           Location: `${url.origin}${actualPath}`,
-          'Set-Cookie': `auth_${normalizePath(protectedPath).replace(/\//g, '_')}=${password}; Path=/shusworkspace${normalizePath(protectedPath)}; HttpOnly; SameSite=Strict; Max-Age=3600`
+          'Set-Cookie': `auth_${normalizePath(protectedPath).replace(/\//g, '_')}=${password}; Path=/sws${normalizePath(protectedPath)}; HttpOnly; SameSite=Strict; Max-Age=3600`
         }
       })
     } else {
@@ -258,15 +258,15 @@ async function handleRequest(request) {
     const normalizedPathname = normalizePath(pathname)
     let actualPath
     if (normalizedPathname === '/docs/workspace/' ) {
-      actualPath = '/shusworkspace/docs/workspace/intro/'
+      actualPath = '/sws/docs/workspace/intro/'
     } else if (normalizedPathname === '/docs/private/' ) {
-      actualPath = '/shusworkspace/docs/private/intro/'
+      actualPath = '/sws/docs/private/intro/'
     } else if (normalizedPathname === '/docs/project-a/' ) {
-      actualPath = '/shusworkspace/docs/project-a/intro/'
+      actualPath = '/sws/docs/project-a/intro/'
     } else if (normalizedPathname === '/docs/project-c/' ) {
-      actualPath = '/shusworkspace/docs/project-c/intro/'
+      actualPath = '/sws/docs/project-c/intro/'
     } else {
-      actualPath = `/shusworkspace${normalizedPathname}`
+      actualPath = `/sws${normalizedPathname}`
     }
 
     console.log(`[DEBUG] Authenticated access - mapping ${pathname} -> ${normalizedPathname} -> ${actualPath}`)
@@ -375,7 +375,7 @@ function getStaticHomePage() {
     
     <div class="links">
       <p>문제가 있으시면 관리자에게 문의하세요.</p>
-      <a href="https://github.com/shiwookim/shusworkspace" target="_blank">GitHub Repository</a>
+      <a href="https://github.com/shiwookim/sws" target="_blank">GitHub Repository</a>
     </div>
   </div>
 </body>
@@ -391,7 +391,7 @@ async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, sectio
       const pathOnly = p.split('?')[0].split('#')[0]
       const segments = pathOnly.replace(/^\/+/, '').split('/')
       // docs 섹션의 잘못 분리된 세그먼트 합치기 (baseUrl 유무 모두 지원)
-      const hasBase = segments[0] === 'shusworkspace'
+      const hasBase = segments[0] === 'sws'
       const idxDocs = hasBase ? 1 : 0
       if (segments[idxDocs] === 'docs' && segments.length >= idxDocs + 3) {
         const idxSection = idxDocs + 1
@@ -414,12 +414,12 @@ async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, sectio
   // 루트 경로 요청을 GitHub Pages baseURL로 리다이렉트
   let githubPath = pathname
   
-  // 루트 경로나 빈 경로는 /shusworkspace/로 매핑
+  // 루트 경로나 빈 경로는 /sws/로 매핑
   if (pathname === '/' || pathname === '') {
-    githubPath = '/shusworkspace/'
-  } else if (!pathname.startsWith('/shusworkspace/')) {
-    // 다른 경로들도 /shusworkspace/ 접두사 추가
-    githubPath = `/shusworkspace${pathname}`
+    githubPath = '/sws/'
+  } else if (!pathname.startsWith('/sws/')) {
+    // 다른 경로들도 /sws/ 접두사 추가
+    githubPath = `/sws${pathname}`
   }
   
   // URL에 Workers 내부 요청 표시 파라미터 추가

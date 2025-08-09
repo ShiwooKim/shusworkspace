@@ -18,12 +18,12 @@ const config: Config = {
   url: 'https://shiwookim.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/shusworkspace/',
+  baseUrl: '/sws/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'shiwookim', // Usually your GitHub org/user name.
-  projectName: 'shusworkspace', // Usually your repo name.
+  projectName: 'sws', // Usually your repo name.
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -45,7 +45,7 @@ const config: Config = {
           path: 'docs',
           routeBasePath: 'docs',
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/shiwookim/shusworkspace/tree/main/',
+          editUrl: 'https://github.com/shiwookim/sws/tree/main/',
         },
         blog: {
           showReadingTime: true,
@@ -56,7 +56,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/shiwookim/shusworkspace/tree/main/',
+            'https://github.com/shiwookim/sws/tree/main/',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -92,7 +92,7 @@ const config: Config = {
         },
         {to: '/blog', label: '블로그', position: 'left'},
         {
-          href: 'https://github.com/shiwookim/shusworkspace',
+          href: 'https://github.com/shiwookim/sws',
           label: 'GitHub',
           position: 'right',
         },

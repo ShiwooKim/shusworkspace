@@ -11,14 +11,14 @@ const PROTECTED_PATHS = [
   '/docs/category/-workspace',
   '/docs/category/-project-a', 
   '/docs/category/-project-c',
-  '/shusworkspace/docs/private',
-  '/shusworkspace/docs/workspace',
-  '/shusworkspace/docs/project-a',
-  '/shusworkspace/docs/project-c',
-  '/shusworkspace/docs/category/-private',
-  '/shusworkspace/docs/category/-workspace',
-  '/shusworkspace/docs/category/-project-a',
-  '/shusworkspace/docs/category/-project-c'
+  '/sws/docs/private',
+  '/sws/docs/workspace',
+  '/sws/docs/project-a',
+  '/sws/docs/project-c',
+  '/sws/docs/category/-private',
+  '/sws/docs/category/-workspace',
+  '/sws/docs/category/-project-a',
+  '/sws/docs/category/-project-c'
 ];
 
 function ProtectionWrapper({children}) {

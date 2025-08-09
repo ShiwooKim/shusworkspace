@@ -60,7 +60,7 @@ function LocalDevDashboard() {
         <div style={{ margin: '2rem 0', padding: '1rem', background: '#e3f2fd', borderRadius: '8px' }}>
           <h3>🔗 프로덕션 링크</h3>
           <ul>
-            <li><a href="https://shiwookim.github.io/shusworkspace/" target="_blank">GitHub Pages (자동 리다이렉트)</a></li>
+            <li><a href="https://shiwookim.github.io/sws/" target="_blank">GitHub Pages (자동 리다이렉트)</a></li>
             <li><a href="https://shusworkspace-auth.shusworkspace.workers.dev" target="_blank">Workers 직접 접근</a></li>
           </ul>
         </div>

@@ -31,8 +31,8 @@
 
 ```bash
 # 저장소 클론
-git clone https://github.com/shiwookim/shusworkspace.git
-cd shusworkspace
+git clone https://github.com/shiwookim/sws.git
+cd sws
 
 # 의존성 설치
 pnpm install
@@ -41,7 +41,7 @@ pnpm install
 pnpm start
 ```
 
-개발 서버가 시작되면 `http://localhost:3000/shusworkspace/`에서 사이트를 확인할 수 있습니다.
+개발 서버가 시작되면 `http://localhost:3000/sws/`에서 사이트를 확인할 수 있습니다.
 
 ## 📋 스크립트
 
@@ -62,7 +62,7 @@ pnpm typecheck
 ## 🏗️ 프로젝트 구조
 
 ```
-shusworkspace/
+sws/
 ├── docs/                 # 문서 콘텐츠
 ├── blog/                 # 블로그 포스트
 ├── src/
@@ -82,7 +82,7 @@ shusworkspace/
 2. GitHub Actions가 자동으로 빌드 실행
 3. GitHub Pages에 배포 완료
 
-라이브 사이트: [https://shiwookim.github.io/shusworkspace/](https://shiwookim.github.io/shusworkspace/)
+라이브 사이트: [https://shiwookim.github.io/sws/](https://shiwookim.github.io/sws/)
 
 ## 📝 콘텐츠 작성
 
