@@ -40,16 +40,7 @@ const config: Config = {
     [
       'classic',
       {
-        docs: {
-          id: 'default',
-          path: 'docs',
-          routeBasePath: 'docs',
-          sidebarPath: './sidebars.ts',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/shiwookim/shusworkspace/tree/main/',
-        },
+        docs: false, // docs 비활성화 - Workers에서만 제공
         blog: {
           showReadingTime: true,
           feedOptions: {

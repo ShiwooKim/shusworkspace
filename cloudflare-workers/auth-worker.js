@@ -23,6 +23,17 @@ async function handleRequest(request) {
     return Response.redirect(`${url.origin}/shusworkspace/`, 302)
   }
   
+  // 로그아웃 경로 - 강제로 재인증 요구
+  if (pathname === '/logout' || pathname === '/logout/') {
+    return new Response('로그아웃되었습니다. 브라우저를 새로고침하세요.', {
+      status: 401,
+      headers: {
+        'WWW-Authenticate': 'Basic realm="Logged Out"',
+        'Content-Type': 'text/html; charset=utf-8'
+      }
+    })
+  }
+  
   // 보호가 필요한 경로인지 확인
   const protectedPath = Object.keys(PASSWORDS).find(path => 
     pathname.startsWith(path)
