@@ -7,7 +7,7 @@ interface CustomSidebarProps {
   currentSection: 'workspace' | 'private' | 'project-a' | 'project-c';
 }
 
-export default function CustomSidebar({ currentSection }: CustomSidebarProps): JSX.Element {
+export default function CustomSidebar({ currentSection }: CustomSidebarProps): React.ReactElement {
   const location = useLocation();
 
   return (

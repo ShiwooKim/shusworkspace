@@ -21,7 +21,7 @@ const PROTECTED_PATHS = [
   '/sws/docs/category/-project-c'
 ];
 
-function ProtectionWrapper({children}) {
+function ProtectionWrapper({children}: {children?: React.ReactNode}) {
   React.useEffect(() => {
     if (!ExecutionEnvironment.canUseDOM) return;
     
@@ -86,7 +86,7 @@ function ProtectionWrapper({children}) {
 }
 
 // Docusaurus Root wrapper
-export default function Root({children}) {
+export default function Root({children}: {children?: React.ReactNode}) {
   return (
     <ProtectionWrapper>
       {children}
