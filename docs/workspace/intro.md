@@ -2,10 +2,6 @@
 sidebar_position: 1
 ---
 
-import ProtectedLayout from '@site/src/components/ProtectedLayout';
-
-<ProtectedLayout section="workspace">
-
 # Workspace 소개
 
 개발과 업무에 관련된 문서들을 정리하는 공간입니다.
@@ -25,5 +21,3 @@ import ProtectedLayout from '@site/src/components/ProtectedLayout';
 ---
 
 > 이 공간의 문서들은 공개 가능한 내용들로 구성되어 있습니다.
-
-</ProtectedLayout>

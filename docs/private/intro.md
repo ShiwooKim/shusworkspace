@@ -2,10 +2,6 @@
 sidebar_position: 1
 ---
 
-import ProtectedLayout from '@site/src/components/ProtectedLayout';
-
-<ProtectedLayout section="private">
-
 # Private Notes
 
 개인적인 학습과 아이디어를 정리하는 비공개 공간입니다.
@@ -25,5 +21,3 @@ import ProtectedLayout from '@site/src/components/ProtectedLayout';
 ---
 
 > 이 공간의 문서들은 비공개로 관리됩니다.
-
-</ProtectedLayout>

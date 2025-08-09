@@ -2,10 +2,6 @@
 sidebar_position: 1
 ---
 
-import ProtectedLayout from '@site/src/components/ProtectedLayout';
-
-<ProtectedLayout section="project-a">
-
 # Project A
 
 Project A의 기획 및 개발 문서를 관리하는 공간입니다.
@@ -27,5 +23,3 @@ Project A의 기획 및 개발 문서를 관리하는 공간입니다.
 ---
 
 > 이 공간의 문서들은 Project A 팀원들과 공유됩니다.
-
-</ProtectedLayout>
