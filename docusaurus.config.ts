@@ -65,6 +65,9 @@ const config: Config = {
           onInlineAuthors: 'warn',
           onUntruncatedBlogPosts: 'warn',
         },
+        pages: {
+          // 페이지 경로 설정 (리다이렉트용)
+        },
         theme: {
           customCss: './src/css/custom.css',
         },
