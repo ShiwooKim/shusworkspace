@@ -80,6 +80,13 @@ async function handleRequest(request) {
   
   // 보호되지 않은 경로는 GitHub Pages에서 가져와서 반환
   if (!protectedPath) {
+    // 루트 경로의 경우 직접 HTML 반환 (무한루프 방지)
+    if (pathname === '/' || pathname === '') {
+      return new Response(getStaticHomePage(), {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+      })
+    }
     return await fetchFromGitHubPages(pathname)
   }
   
@@ -121,6 +128,101 @@ async function handleRequest(request) {
       'Content-Type': 'text/html; charset=utf-8'
     }
   })
+}
+
+// 정적 홈페이지 HTML 반환 (무한루프 방지용)
+function getStaticHomePage() {
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shu's Workspace - 보안 접속</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      max-width: 600px;
+    }
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top: 4px solid white;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .links {
+      margin-top: 2rem;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .links a {
+      color: white;
+      text-decoration: underline;
+      margin: 0 10px;
+    }
+    .nav-links {
+      margin-top: 2rem;
+      padding: 1rem;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+    }
+    .nav-links a {
+      display: inline-block;
+      margin: 5px 10px;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+    .nav-links a:hover {
+      background: rgba(255,255,255,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <h1>🔒 Shu's Workspace</h1>
+    <p>보안이 강화된 문서 관리 시스템에 오신 것을 환영합니다.</p>
+    
+    <div class="nav-links">
+      <h3>📂 문서 섹션</h3>
+      <a href="/docs/intro">📋 Public Docs</a>
+      <a href="/docs/workspace/">💼 Workspace</a>
+      <a href="/docs/private/">🔒 Private Notes</a>
+      <a href="/docs/project-a/">🚀 Project A</a>
+      <a href="/docs/project-c/">🚀 Project C</a>
+      <br><br>
+      <a href="/blog">✍️ Blog</a>
+    </div>
+    
+    <div class="links">
+      <p>문제가 있으시면 관리자에게 문의하세요.</p>
+      <a href="https://github.com/shiwookim/shusworkspace" target="_blank">GitHub Repository</a>
+    </div>
+  </div>
+</body>
+</html>`
 }
 
 // GitHub Pages에서 컨텐츠를 가져오는 함수
@@ -166,9 +268,14 @@ async function fetchFromGitHubPages(pathname) {
       content = content.replace(/src="\/shusworkspace\//g, 'src="/')
       content = content.replace(/action="\/shusworkspace\//g, 'action="/')
       
-      // 무한 리다이렉트를 방지하기 위해 리다이렉트 스크립트 제거
-      content = content.replace(/window\.location\.replace\(['"`]https:\/\/shusworkspace-auth\.shusworkspace\.workers\.dev['"`]\);?/g, '// Redirect disabled for Workers request')
+      // 무한 리다이렉트를 방지하기 위해 리다이렉트 스크립트 제거 (더 포괄적인 패턴)
+      content = content.replace(/window\.location\.replace\([^)]*shusworkspace-auth\.shusworkspace\.workers\.dev[^)]*\)/g, '// Redirect disabled for Workers request')
+      content = content.replace(/window\.location\.href\s*=\s*[^;]*shusworkspace-auth\.shusworkspace\.workers\.dev[^;]*/g, '// Redirect disabled for Workers request')
+      content = content.replace(/location\.replace\([^)]*shusworkspace-auth\.shusworkspace\.workers\.dev[^)]*\)/g, '// Redirect disabled for Workers request')
       content = content.replace(/<meta http-equiv="refresh"[^>]*>/gi, '<!-- Meta refresh disabled for Workers request -->')
+      
+      // React 기반 리다이렉트도 제거
+      content = content.replace(/if\s*\(\s*isProduction\s*&&\s*!isWorkerRequest\s*&&\s*!isAlreadyOnWorkers\s*\)\s*\{[^}]*window\.location\.replace[^}]*\}/g, '// Conditional redirect disabled for Workers request')
     }
     
     // 새로운 응답 생성
