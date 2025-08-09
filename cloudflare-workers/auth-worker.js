@@ -77,16 +77,20 @@ async function handleRequest(request) {
     return logoutResponse
   }
   
-  // 보호가 필요한 경로인지 확인
-  const protectedPath = Object.keys(PASSWORDS).find(path => 
-    pathname.startsWith(path)
-  )
+  // 보호가 필요한 경로인지 확인 (디버깅 로그 추가)
+  console.log(`[DEBUG] Checking pathname: ${pathname}`)
+  const protectedPath = Object.keys(PASSWORDS).find(path => {
+    const isProtected = pathname.startsWith(path)
+    console.log(`[DEBUG] Testing path ${path}: ${isProtected}`)
+    return isProtected
+  })
+  console.log(`[DEBUG] Protected path found: ${protectedPath}`)
   
   // 보호되지 않은 경로 처리
   if (!protectedPath) {
-    // 루트 경로의 경우 Docusaurus intro 페이지로 리다이렉트
+    // 루트 경로의 경우 GitHub Pages에서 홈페이지 콘텐츠를 가져와서 표시
     if (pathname === '/' || pathname === '' || pathname === '/shusworkspace/' || pathname === '/shusworkspace') {
-      return Response.redirect(new URL('/docs/intro', request.url).toString(), 302)
+      return await fetchFromGitHubPages('/shusworkspace/')
     }
     
     // 다른 공개 경로들은 GitHub Pages에서 가져오기
