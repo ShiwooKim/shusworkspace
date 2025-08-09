@@ -136,7 +136,10 @@ async function fetchFromGitHubPages(pathname) {
     githubPath = `/shusworkspace${pathname}`
   }
   
-  const githubUrl = `https://shiwookim.github.io${githubPath}`
+  // URL에 Workers 내부 요청 표시 파라미터 추가
+  const urlParams = new URLSearchParams()
+  urlParams.set('workers-internal', 'true')
+  const githubUrl = `https://shiwookim.github.io${githubPath}?${urlParams.toString()}`
   
   try {
     // 무한 리다이렉트 방지를 위한 특별한 User-Agent 헤더 추가

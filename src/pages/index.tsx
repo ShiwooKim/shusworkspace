@@ -1,33 +1,49 @@
 import type {ReactNode} from 'react';
 import { useEffect, useState } from 'react';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
-import ExecutionEnvironment from '@docusaurus/ExecutionEnvironment';
+import BrowserOnly from '@docusaurus/BrowserOnly';
 
-export default function Home(): ReactNode {
-  const {siteConfig} = useDocusaurusContext();
-  const [isLocalhost, setIsLocalhost] = useState(false);
+function HomeContent(): ReactNode {
+  const [isLocalhost, setIsLocalhost] = useState<boolean | null>(null); // null로 초기화
   
   useEffect(() => {
-    // 브라우저 환경에서만 실행
-    if (ExecutionEnvironment.canUseDOM) {
-      // 로컬호스트인지 확인
-      const localhost = window.location.hostname === 'localhost' || 
-                       window.location.hostname === '127.0.0.1' ||
-                       window.location.hostname.includes('.local');
-      setIsLocalhost(localhost);
-      
-      // 프로덕션 환경에서만 Workers 사이트로 리다이렉트
-      const isProduction = !localhost;
-      
-      // Workers 내부 요청인지 확인 (User-Agent 체크)
-      const isWorkerRequest = navigator.userAgent.includes('Cloudflare-Workers-Internal-Request');
-      
-      // 프로덕션이고 Workers 내부 요청이 아닐 때만 리다이렉트
-      if (isProduction && !isWorkerRequest) {
-        window.location.replace('https://shusworkspace-auth.shusworkspace.workers.dev');
-      }
+    // 로컬호스트인지 확인
+    const localhost = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1' ||
+                     window.location.hostname.includes('.local');
+    setIsLocalhost(localhost);
+    
+    // 프로덕션 환경에서만 Workers 사이트로 리다이렉트
+    const isProduction = !localhost;
+    
+    // Workers 내부 요청인지 확인 (여러 방법으로 체크)
+    const isWorkerRequest = navigator.userAgent.includes('Cloudflare-Workers-Internal-Request') ||
+                           window.location.search.includes('workers-internal=true') ||
+                           document.referrer.includes('workers.dev');
+    
+    // 이미 Workers 도메인에 있는지 확인
+    const isAlreadyOnWorkers = window.location.hostname.includes('workers.dev');
+    
+    // 프로덕션이고 Workers 내부 요청이 아니고 Workers 도메인이 아닐 때만 리다이렉트
+    if (isProduction && !isWorkerRequest && !isAlreadyOnWorkers) {
+      window.location.replace('https://shusworkspace-auth.shusworkspace.workers.dev');
     }
   }, []);
+
+  // 아직 로딩 중일 때
+  if (isLocalhost === null) {
+    return (
+      <div style={{
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   if (isLocalhost) {
     return (
@@ -118,5 +134,15 @@ export default function Home(): ReactNode {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function Home(): ReactNode {
+  const {siteConfig} = useDocusaurusContext();
+
+  return (
+    <BrowserOnly fallback={<div>Loading...</div>}>
+      {() => <HomeContent />}
+    </BrowserOnly>
   );
 }
