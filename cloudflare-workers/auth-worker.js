@@ -140,17 +140,17 @@ async function handleRequest(request) {
       
       console.log(`[DEBUG] Auth success - mapping ${pathname} to ${actualPath}`)
       
-      // React Hydration 에러를 피하기 위해 정적 성공 페이지 반환 후 리다이렉트
-      const sectionName = getSectionName(protectedPath)
-      const successPage = getSuccessPage(actualPath, sectionName)
-      const response = new Response(successPage, {
-        status: 200,
+      // 쿠키 설정 후 Workers에서 직접 페이지 제공 (커스텀 사이드바 적용)
+      const sectionName = getSectionFromPath(protectedPath)
+      const response = await fetchFromGitHubPages(actualPath, true, sectionName)
+      const modifiedResponse = new Response(response.body, {
+        status: response.status,
         headers: {
-          'Content-Type': 'text/html; charset=utf-8',
+          ...Object.fromEntries(response.headers),
           'Set-Cookie': `auth_${protectedPath.replace(/\//g, '_')}=${password}; Path=${protectedPath}; HttpOnly; SameSite=Strict; Max-Age=3600`
         }
       })
-      return response
+      return modifiedResponse
     } else {
       // 비밀번호 틀림
       return new Response(getLoginPage(protectedPath, true), {
@@ -191,7 +191,8 @@ async function handleRequest(request) {
     }
     
     console.log(`[DEBUG] Authenticated access - mapping ${pathname} to ${actualPath}`)
-    return await fetchFromGitHubPages(actualPath)
+    const sectionName = getSectionFromPath(protectedPath)
+    return await fetchFromGitHubPages(actualPath, true, sectionName)
   }
   
   // 인증되지 않음 - 로그인 폼 표시
@@ -299,7 +300,7 @@ function getStaticHomePage() {
 }
 
 // GitHub Pages에서 컨텐츠를 가져오는 함수
-async function fetchFromGitHubPages(pathname) {
+async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, section = null) {
   // 루트 경로 요청을 GitHub Pages baseURL로 리다이렉트
   let githubPath = pathname
   
@@ -352,6 +353,11 @@ async function fetchFromGitHubPages(pathname) {
       
       // React 기반 리다이렉트도 제거
       content = content.replace(/if\s*\(\s*isProduction\s*&&\s*!isWorkerRequest\s*&&\s*!isAlreadyOnWorkers\s*\)\s*\{[^}]*window\.location\.replace[^}]*\}/g, '// Conditional redirect disabled for Workers request')
+      
+      // 보호된 페이지인 경우 커스텀 사이드바 적용
+      if (applyCustomSidebar && section) {
+        content = injectCustomSidebar(content, section)
+      }
     }
     
     // 새로운 응답 생성
@@ -371,75 +377,7 @@ async function fetchFromGitHubPages(pathname) {
 }
 
 // 인증 성공 후 리다이렉트 페이지 HTML (React Hydration 에러 방지)
-function getSuccessPage(targetUrl, sectionName) {
-  return `
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✅ 로그인 성공 - ${sectionName}</title>
-    <meta name="robots" content="noindex, nofollow">
-    <style>
-        * { box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            margin: 0; padding: 20px; min-height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            color: white;
-        }
-        .success-container {
-            background: white; padding: 3rem; border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            text-align: center; max-width: 500px; width: 100%;
-            color: #333;
-        }
-        .icon { font-size: 4rem; margin-bottom: 1rem; color: #28a745; }
-        h1 { color: #28a745; margin-bottom: 1rem; font-size: 1.8rem; }
-        .message { color: #666; margin-bottom: 2rem; line-height: 1.6; }
-        .progress-bar {
-            width: 100%; height: 6px; background: #e9ecef;
-            border-radius: 3px; overflow: hidden; margin: 1.5rem 0;
-        }
-        .progress-fill {
-            height: 100%; background: linear-gradient(90deg, #28a745, #20c997);
-            width: 0%; border-radius: 3px;
-            animation: progress 2s ease-out forwards;
-        }
-        @keyframes progress {
-            to { width: 100%; }
-        }
-        .redirect-note { 
-            font-size: 0.9rem; color: #999; margin-top: 1rem;
-        }
-    </style>
-</head>
-<body>
-    <div class="success-container">
-        <div class="icon">🎉</div>
-        <h1>로그인 성공!</h1>
-        <p class="message">
-            <strong>${sectionName}</strong> 섹션에 성공적으로 접근했습니다.<br>
-            잠시 후 자동으로 페이지로 이동합니다.
-        </p>
-        <div class="progress-bar">
-            <div class="progress-fill"></div>
-        </div>
-        <p class="redirect-note">
-            자동으로 이동하지 않으면 <a href="https://shiwookim.github.io${targetUrl}">여기를 클릭</a>하세요.
-        </p>
-    </div>
-    
-    <script>
-        // 2초 후 GitHub Pages로 직접 리다이렉트 (Workers 우회)
-        setTimeout(function() {
-            window.location.href = 'https://shiwookim.github.io${targetUrl}';
-        }, 2000);
-    </script>
-</body>
-</html>`
-}
+
 
 // 커스텀 로그인 폼 페이지 HTML
 function getLoginPage(path, isError = false) {
@@ -658,4 +596,228 @@ function getSectionName(path) {
     '/docs/project-c/': 'Project C'
   }
   return names[path] || 'Protected Area'
+}
+
+function getSectionFromPath(path) {
+  const sections = {
+    '/docs/private/': 'private',
+    '/docs/workspace/': 'workspace',
+    '/docs/project-a/': 'project-a',
+    '/docs/project-c/': 'project-c'
+  }
+  return sections[path] || 'workspace'
+}
+
+function injectCustomSidebar(htmlContent, section) {
+  // 커스텀 사이드바 HTML
+  const customSidebar = generateCustomSidebar(section)
+  
+  // 기존 Docusaurus 컨테이너를 찾아서 래핑
+  const wrappedContent = htmlContent.replace(
+    /<main[^>]*>([\s\S]*?)<\/main>/i,
+    `<div class="doc-wrapper">
+      ${customSidebar}
+      <div class="main-content">
+        <main$1>$2</main>
+      </div>
+    </div>`
+  )
+  
+  // CSS 스타일 추가
+  const customCSS = generateCustomCSS()
+  const finalContent = wrappedContent.replace(
+    '</head>',
+    `${customCSS}</head>`
+  )
+  
+  return finalContent
+}
+
+function generateCustomSidebar(currentSection) {
+  const activeClass = (section) => section === currentSection ? 'active' : ''
+  
+  return `
+  <div class="custom-sidebar">
+    <div class="sidebar-header">
+      <h3>📚 문서 목록</h3>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <h4>💼 Workspace</h4>
+        <ul>
+          <li class="${activeClass('workspace')}">
+            <a href="/docs/workspace/intro">소개</a>
+          </li>
+        </ul>
+      </div>
+      <div class="nav-section">
+        <h4>🔒 Private Notes</h4>
+        <ul>
+          <li class="${activeClass('private')}">
+            <a href="/docs/private/intro">소개</a>
+          </li>
+        </ul>
+      </div>
+      <div class="nav-section">
+        <h4>🚀 Projects</h4>
+        <ul>
+          <li class="${activeClass('project-a')}">
+            <a href="/docs/project-a/intro">Project A</a>
+          </li>
+          <li class="${activeClass('project-c')}">
+            <a href="/docs/project-c/intro">Project C</a>
+          </li>
+        </ul>
+      </div>
+      <div class="nav-section home-link">
+        <a href="/docs/intro">📋 Public Docs</a>
+      </div>
+    </nav>
+  </div>`
+}
+
+function generateCustomCSS() {
+  return `
+  <style>
+  .doc-wrapper {
+    display: flex;
+    gap: 2rem;
+    margin: -2rem;
+    min-height: calc(100vh - 60px);
+  }
+
+  .custom-sidebar {
+    width: 300px;
+    background: var(--ifm-background-surface-color, #f8f9fa);
+    padding: 1.5rem;
+    border-right: 1px solid var(--ifm-toc-border-color, #e9ecef);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--ifm-toc-border-color, #e9ecef);
+  }
+
+  .sidebar-header h3 {
+    margin: 0;
+    color: var(--ifm-color-primary, #495057);
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .nav-section h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--ifm-color-primary, #495057);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .nav-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav-section li {
+    margin: 0.3rem 0;
+  }
+
+  .nav-section li a {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: var(--ifm-font-color-base, #495057);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .nav-section li a:hover {
+    background: var(--ifm-hover-overlay, #e9ecef);
+    color: var(--ifm-color-primary, #228be6);
+  }
+
+  .nav-section li.active a {
+    background: var(--ifm-color-primary, #228be6);
+    color: var(--ifm-font-color-base-inverse, white);
+    font-weight: 600;
+  }
+
+  .home-link {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--ifm-toc-border-color, #e9ecef);
+  }
+
+  .home-link a {
+    display: block;
+    padding: 0.8rem 1rem;
+    color: var(--ifm-font-color-base, #495057);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.2s;
+    text-align: center;
+    background: var(--ifm-hover-overlay, #e9ecef);
+  }
+
+  .home-link a:hover {
+    background: var(--ifm-color-primary, #228be6);
+    color: var(--ifm-font-color-base-inverse, white);
+  }
+
+  .main-content {
+    flex: 1;
+    padding: 2rem;
+    max-width: 900px;
+  }
+
+  /* 다크 모드 지원 */
+  [data-theme='dark'] .custom-sidebar {
+    background: #1b1b1d;
+    border-right-color: #2d2d2d;
+  }
+
+  [data-theme='dark'] .sidebar-header {
+    border-bottom-color: #2d2d2d;
+  }
+
+  [data-theme='dark'] .sidebar-header h3,
+  [data-theme='dark'] .nav-section h4,
+  [data-theme='dark'] .nav-section li a {
+    color: #e9ecef;
+  }
+
+  [data-theme='dark'] .nav-section li a:hover {
+    background: #2d2d2d;
+    color: #74c0fc;
+  }
+
+  [data-theme='dark'] .nav-section li.active a {
+    background: #1c7ed6;
+    color: white;
+  }
+
+  [data-theme='dark'] .home-link {
+    border-top-color: #2d2d2d;
+  }
+
+  [data-theme='dark'] .home-link a {
+    background: #2d2d2d;
+    color: #e9ecef;
+  }
+
+  [data-theme='dark'] .home-link a:hover {
+    background: #343a40;
+    color: #74c0fc;
+  }
+  </style>`
 }
