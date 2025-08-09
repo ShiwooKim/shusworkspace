@@ -40,8 +40,8 @@ async function handleRequest(request) {
 
   // 강력한 1차 타이포 교정: /workspac/e -> 워크스페이스 인트로로 직접 이동 (baseUrl 유무 모두)
   if (/\/(workspac)\/e(\/|$)/.test(pathname)) {
-    // 주소창은 잘못되어 있어도, 바로 올바른 컨텐츠를 200으로 반환해 루프를 완전히 차단
-    return await fetchFromGitHubPages('/shusworkspace/docs/workspace/intro/', true, 'workspace')
+    // 주소창은 잘못되어 있어도, 바로 올바른 컨텐츠를 200으로 반환 + 주소창 보정
+    return await fetchFromGitHubPages('/shusworkspace/docs/workspace/intro/', true, 'workspace', '/shusworkspace/docs/workspace/intro/')
   }
 
   // 0) 잘못 분리된 섹션 경로 교정: /workspac/e, /project-/a, /project-/c 등
@@ -371,7 +371,7 @@ function getStaticHomePage() {
 }
 
 // GitHub Pages에서 컨텐츠를 가져오는 함수
-async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, section = null) {
+async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, section = null, overrideLocationTo = null) {
   // 추가 안전장치: 잘못 분리된 섹션 슬러그(workspac/e 등)를 교정
   const normalizeForGithub = (p) => {
     try {
@@ -450,6 +450,12 @@ async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, sectio
       if (applyCustomSidebar && section) {
         content = hideDocusaurusSidebar(content)
       }
+
+        // 주소창 교체가 필요한 경우(오타 경로 등) 초기 로드 전에 경로를 교정
+        if (overrideLocationTo) {
+          const replaceScript = `\n<script>(function(){try{if(location.pathname!=='${overrideLocationTo}'){history.replaceState(null,'','${overrideLocationTo}')}}catch(e){}})();</script>\n`
+          content = content.replace('</head>', `${replaceScript}</head>`)
+        }
     }
     
     // 새로운 응답 생성
