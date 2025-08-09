@@ -66,7 +66,8 @@ async function handleRequest(request) {
 
   const repaired = fixSplitSection(pathname)
   if (repaired !== pathname) {
-    return Response.redirect(repaired, 302)
+    const location = repaired.startsWith('http') ? repaired : `${url.origin}${repaired}`
+    return Response.redirect(location, 302)
   }
   
   // 루트 경로 접근 시 /shusworkspace/로 리다이렉트
@@ -368,13 +369,16 @@ async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, sectio
       if (!p) return p
       const pathOnly = p.split('?')[0].split('#')[0]
       const segments = pathOnly.replace(/^\/+/, '').split('/')
-      // docs 섹션의 잘못 분리된 세그먼트 합치기
-      if (segments[0] === 'docs' && segments.length >= 3) {
+      // docs 섹션의 잘못 분리된 세그먼트 합치기 (baseUrl 유무 모두 지원)
+      const hasBase = segments[0] === 'shusworkspace'
+      const idxDocs = hasBase ? 1 : 0
+      if (segments[idxDocs] === 'docs' && segments.length >= idxDocs + 3) {
+        const idxSection = idxDocs + 1
         const allowed = new Set(['workspace', 'private', 'project-a', 'project-c', 'category'])
-        if (!allowed.has(segments[1]) && segments[1] !== 'category' && segments.length >= 3) {
-          const merged = `${segments[1]}${segments[2]}`
+        if (!allowed.has(segments[idxSection]) && segments[idxSection] !== 'category') {
+          const merged = `${segments[idxSection]}${segments[idxSection + 1]}`
           if (['workspace', 'private', 'project-a', 'project-c'].includes(merged)) {
-            segments.splice(1, 2, merged)
+            segments.splice(idxSection, 2, merged)
           }
         }
       }
