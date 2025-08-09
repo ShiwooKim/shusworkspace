@@ -81,7 +81,7 @@ async function handleRequest(request) {
   // 보호되지 않은 경로는 GitHub Pages에서 가져와서 반환
   if (!protectedPath) {
     // 루트 경로의 경우 직접 HTML 반환 (무한루프 방지)
-    if (pathname === '/' || pathname === '') {
+    if (pathname === '/' || pathname === '' || pathname === '/shusworkspace/' || pathname === '/shusworkspace') {
       return new Response(getStaticHomePage(), {
         status: 200,
         headers: { 'Content-Type': 'text/html; charset=utf-8' }
