@@ -123,7 +123,20 @@ async function handleRequest(request) {
     
     if (password === requiredPassword) {
       // 인증 성공 시 쿠키 설정하고 페이지 제공
-      const response = await fetchFromGitHubPages(pathname)
+      // 폴더 경로를 intro 페이지로 매핑
+      let actualPath = pathname
+      if (pathname.endsWith('/docs/workspace/')) {
+        actualPath = '/shusworkspace/docs/workspace/intro'
+      } else if (pathname.endsWith('/docs/private/')) {
+        actualPath = '/shusworkspace/docs/private/intro'
+      } else if (pathname.endsWith('/docs/project-a/')) {
+        actualPath = '/shusworkspace/docs/project-a/intro'
+      } else if (pathname.endsWith('/docs/project-c/')) {
+        actualPath = '/shusworkspace/docs/project-c/intro'
+      }
+      
+      console.log(`[DEBUG] Auth success - mapping ${pathname} to ${actualPath}`)
+      const response = await fetchFromGitHubPages(actualPath)
       response.headers.set('Set-Cookie', `auth_${protectedPath.replace(/\//g, '_')}=${password}; Path=${protectedPath}; HttpOnly; SameSite=Strict; Max-Age=3600`)
       return response
     } else {
@@ -142,8 +155,20 @@ async function handleRequest(request) {
   const authCookie = `auth_${protectedPath.replace(/\//g, '_')}=${PASSWORDS[protectedPath]}`
   
   if (cookies.includes(authCookie)) {
-    // 이미 인증됨
-    return await fetchFromGitHubPages(pathname)
+    // 이미 인증됨 - 경로 매핑 적용
+    let actualPath = pathname
+    if (pathname.endsWith('/docs/workspace/')) {
+      actualPath = '/shusworkspace/docs/workspace/intro'
+    } else if (pathname.endsWith('/docs/private/')) {
+      actualPath = '/shusworkspace/docs/private/intro'
+    } else if (pathname.endsWith('/docs/project-a/')) {
+      actualPath = '/shusworkspace/docs/project-a/intro'
+    } else if (pathname.endsWith('/docs/project-c/')) {
+      actualPath = '/shusworkspace/docs/project-c/intro'
+    }
+    
+    console.log(`[DEBUG] Authenticated access - mapping ${pathname} to ${actualPath}`)
+    return await fetchFromGitHubPages(actualPath)
   }
   
   // 인증되지 않음 - 로그인 폼 표시
