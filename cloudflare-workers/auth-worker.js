@@ -409,7 +409,7 @@ function getStaticHomePage() {
       <a href="/docs/project-a/">🚀 Project A</a>
       <a href="/docs/project-c/">🚀 Project C</a>
       <br><br>
-      <a href="/blog">✍️ Blog</a>
+      <!-- Blog link temporarily removed -->
     </div>
     
     <div class="links">
@@ -554,7 +554,7 @@ function getLoginPage(path, isError = false) {
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #20232a;
             margin: 0;
             padding: 20px;
             min-height: 100vh;
