@@ -6,24 +6,68 @@ const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'intro', // Public Docs
     {
-      type: 'link',
+      type: 'category',
       label: '💼 Workspace',
-      href: `${WORKER_URL}/docs/workspace/`,
+      link: {
+        type: 'generated-index',
+        title: 'Workspace',
+        slug: '/category/workspace',
+      },
+      items: [
+        {
+          type: 'link',
+          label: '소개',
+          href: `${WORKER_URL}/docs/workspace/intro`,
+        }
+      ]
     },
     {
-      type: 'link',
+      type: 'category',
       label: '🔒 Private Notes',
-      href: `${WORKER_URL}/docs/private/`,
+      link: {
+        type: 'generated-index',
+        title: 'Private Notes',
+        slug: '/category/private',
+      },
+      items: [
+        {
+          type: 'link',
+          label: '소개',
+          href: `${WORKER_URL}/docs/private/intro`,
+        }
+      ]
     },
     {
-      type: 'link',
+      type: 'category',
       label: '🚀 Project A',
-      href: `${WORKER_URL}/docs/project-a/`,
+      link: {
+        type: 'generated-index',
+        title: 'Project A',
+        slug: '/category/project-a',
+      },
+      items: [
+        {
+          type: 'link',
+          label: '소개',
+          href: `${WORKER_URL}/docs/project-a/intro`,
+        }
+      ]
     },
     {
-      type: 'link',
+      type: 'category',
       label: '🚀 Project C',
-      href: `${WORKER_URL}/docs/project-c/`,
+      link: {
+        type: 'generated-index',
+        title: 'Project C',
+        slug: '/category/project-c',
+      },
+      items: [
+        {
+          type: 'link',
+          label: '소개',
+          href: `${WORKER_URL}/docs/project-c/intro`,
+        }
+      ]
     }
   ],
 };

@@ -129,13 +129,13 @@ async function handleRequest(request) {
       // 폴더 경로를 intro 페이지로 매핑 (GitHub Pages는 슬래시 필요)
       let actualPath = pathname
       if (pathname.endsWith('/docs/workspace/') || pathname === '/docs/workspace') {
-        actualPath = '/shusworkspace/docs/workspace/intro'
+        actualPath = '/shusworkspace/docs/workspace/intro/'
       } else if (pathname.endsWith('/docs/private/') || pathname === '/docs/private') {
-        actualPath = '/shusworkspace/docs/private/intro'
+        actualPath = '/shusworkspace/docs/private/intro/'
       } else if (pathname.endsWith('/docs/project-a/') || pathname === '/docs/project-a') {
-        actualPath = '/shusworkspace/docs/project-a/intro'
+        actualPath = '/shusworkspace/docs/project-a/intro/'
       } else if (pathname.endsWith('/docs/project-c/') || pathname === '/docs/project-c') {
-        actualPath = '/shusworkspace/docs/project-c/intro'
+        actualPath = '/shusworkspace/docs/project-c/intro/'
       } else {
         // 기타 경로들은 baseURL만 추가
         actualPath = `/shusworkspace${pathname}`
@@ -173,13 +173,13 @@ async function handleRequest(request) {
     // 이미 인증됨 - 경로 매핑 적용 (GitHub Pages는 슬래시 필요)
     let actualPath = pathname
     if (pathname.endsWith('/docs/workspace/') || pathname === '/docs/workspace') {
-      actualPath = '/shusworkspace/docs/workspace/intro'
+      actualPath = '/shusworkspace/docs/workspace/intro/'
     } else if (pathname.endsWith('/docs/private/') || pathname === '/docs/private') {
-      actualPath = '/shusworkspace/docs/private/intro'
+      actualPath = '/shusworkspace/docs/private/intro/'
     } else if (pathname.endsWith('/docs/project-a/') || pathname === '/docs/project-a') {
-      actualPath = '/shusworkspace/docs/project-a/intro'
+      actualPath = '/shusworkspace/docs/project-a/intro/'
     } else if (pathname.endsWith('/docs/project-c/') || pathname === '/docs/project-c') {
-      actualPath = '/shusworkspace/docs/project-c/intro'
+      actualPath = '/shusworkspace/docs/project-c/intro/'
     } else {
       // 보호된 경로 내의 다른 페이지들도 baseURL 추가
       actualPath = `/shusworkspace${pathname}`
@@ -604,35 +604,28 @@ function getSectionFromPath(path) {
 }
 
 function injectCustomSidebar(htmlContent, section) {
-  // React Hydration 에러를 방지하기 위해 더 간단한 방식 사용
-  // body 태그 바로 뒤에 사이드바를 삽입하고 기존 콘텐츠를 래핑
+  // 커스텀 사이드바 HTML
   const customSidebar = generateCustomSidebar(section)
-  const customCSS = generateCustomCSS()
   
-  // CSS 먼저 추가
-  let modifiedContent = htmlContent.replace(
+  // 기존 Docusaurus 컨테이너를 찾아서 래핑
+  const wrappedContent = htmlContent.replace(
+    /<main[^>]*>([\s\S]*?)<\/main>/i,
+    `<div class="doc-wrapper">
+      ${customSidebar}
+      <div class="main-content">
+        <main$1>$2</main>
+      </div>
+    </div>`
+  )
+  
+  // CSS 스타일 추가
+  const customCSS = generateCustomCSS()
+  const finalContent = wrappedContent.replace(
     '</head>',
     `${customCSS}</head>`
   )
   
-  // body 태그 바로 뒤에 사이드바 추가하고 나머지 내용을 래핑
-  modifiedContent = modifiedContent.replace(
-    /(<body[^>]*>)/i,
-    `$1
-    <div class="doc-wrapper">
-      ${customSidebar}
-      <div class="main-content-wrapper">`
-  )
-  
-  // body 태그 닫히기 전에 wrapper 닫기
-  modifiedContent = modifiedContent.replace(
-    '</body>',
-    `    </div>
-    </div>
-    </body>`
-  )
-  
-  return modifiedContent
+  return finalContent
 }
 
 function generateCustomSidebar(currentSection) {
@@ -682,17 +675,10 @@ function generateCustomCSS() {
   return `
   <style>
   .doc-wrapper {
-    display: flex !important;
-    gap: 0;
-    margin: 0;
-    min-height: 100vh;
-    max-width: none !important;
-    width: 100% !important;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    background: var(--ifm-background-color, white);
+    display: flex;
+    gap: 2rem;
+    margin: -2rem;
+    min-height: calc(100vh - 60px);
   }
 
   .custom-sidebar {
@@ -783,26 +769,10 @@ function generateCustomCSS() {
     color: var(--ifm-font-color-base-inverse, white);
   }
 
-  .main-content-wrapper {
+  .main-content {
     flex: 1;
-    overflow-y: auto;
-    height: 100vh;
-    padding-left: 2rem;
-  }
-  
-  /* 기존 Docusaurus 요소들 숨기기 */
-  .navbar {
-    display: none !important;
-  }
-  
-  .theme-doc-sidebar-container {
-    display: none !important;
-  }
-  
-  /* 기본 body 여백 제거 */
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
+    padding: 2rem;
+    max-width: 900px;
   }
 
   /* 다크 모드 지원 */
