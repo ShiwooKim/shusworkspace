@@ -14,7 +14,7 @@ addEventListener('fetch', event => {
 // GitHub Pages 원본 URL
 const GITHUB_PAGES_URL = 'https://shiwookim.github.io/sws'
 
-// 각 섹션별 비밀번호 설정
+// 각 섹션별 비밀번호 설정 (기본값). Cloudflare Secret로 오버라이드 가능
 const PASSWORDS = {
   '/docs/private': 'private123',           // Private Notes 전체
   '/docs/workspace': 'workspace456',       // Workspace 전체
@@ -32,6 +32,42 @@ const PASSWORDS = {
   '/sws/docs/category/-workspace': 'workspace456',   // Workspace 카테고리 (baseURL 포함)
   '/sws/docs/category/-project-a': 'projectA789',    // Project A 카테고리 (baseURL 포함)
   '/sws/docs/category/-project-c': 'projectC101'     // Project C 카테고리 (baseURL 포함)
+}
+
+// Cloudflare Secrets로 설정된 비밀번호가 있으면 우선 사용
+function getEnvPasswordForPath(path) {
+  try {
+    if (!path) return null
+    // 섹션 루트 기준으로 매핑
+    const sectionRoots = {
+      '/docs/private/': 'PRIVATE_PASSWORD',
+      '/docs/workspace/': 'WORKSPACE_PASSWORD',
+      '/docs/project-a/': 'PROJECT_A_PASSWORD',
+      '/docs/project-c/': 'PROJECT_C_PASSWORD',
+      '/sws/docs/private/': 'PRIVATE_PASSWORD',
+      '/sws/docs/workspace/': 'WORKSPACE_PASSWORD',
+      '/sws/docs/project-a/': 'PROJECT_A_PASSWORD',
+      '/sws/docs/project-c/': 'PROJECT_C_PASSWORD',
+      '/docs/category/-private/': 'PRIVATE_PASSWORD',
+      '/docs/category/-workspace/': 'WORKSPACE_PASSWORD',
+      '/docs/category/-project-a/': 'PROJECT_A_PASSWORD',
+      '/docs/category/-project-c/': 'PROJECT_C_PASSWORD',
+      '/sws/docs/category/-private/': 'PRIVATE_PASSWORD',
+      '/sws/docs/category/-workspace/': 'WORKSPACE_PASSWORD',
+      '/sws/docs/category/-project-a/': 'PROJECT_A_PASSWORD',
+      '/sws/docs/category/-project-c/': 'PROJECT_C_PASSWORD'
+    }
+    // normalize to ensure trailing slash for matching
+    const ensureSlash = (p) => (p.endsWith('/') ? p : p + '/')
+    const normalized = ensureSlash(path)
+    const match = Object.keys(sectionRoots).find((root) => normalized.startsWith(root))
+    if (!match) return null
+    const envName = sectionRoots[match]
+    const value = globalThis && typeof globalThis[envName] !== 'undefined' ? globalThis[envName] : null
+    return value || null
+  } catch (_) {
+    return null
+  }
 }
 
 async function handleRequest(request) {
@@ -204,7 +240,8 @@ async function handleRequest(request) {
     const formData = await request.formData()
     const password = formData.get('password')
     const canonicalPath = normalizePath(protectedPath)
-    const requiredPassword = PASSWORDS[canonicalPath] || PASSWORDS[protectedPath]
+    const envOverride = getEnvPasswordForPath(canonicalPath) || getEnvPasswordForPath(protectedPath)
+    const requiredPassword = envOverride || PASSWORDS[canonicalPath] || PASSWORDS[protectedPath]
     
     console.log(`[DEBUG] Password check: provided="${password}", required="${requiredPassword}", match=${password === requiredPassword}`)
     
@@ -251,7 +288,9 @@ async function handleRequest(request) {
   // 쿠키 확인
   const cookies = request.headers.get('Cookie') || ''
   const canonicalPath = normalizePath(protectedPath)
-  const authCookie = `auth_${canonicalPath.replace(/\//g, '_')}=${PASSWORDS[canonicalPath] || PASSWORDS[protectedPath]}`
+  const envOverride = getEnvPasswordForPath(canonicalPath) || getEnvPasswordForPath(protectedPath)
+  const cookiePassword = envOverride || PASSWORDS[canonicalPath] || PASSWORDS[protectedPath]
+  const authCookie = `auth_${canonicalPath.replace(/\//g, '_')}=${cookiePassword}`
   
   if (cookies.includes(authCookie)) {
     // 이미 인증됨 - 경로 매핑 적용 (GitHub Pages는 슬래시 필요)
