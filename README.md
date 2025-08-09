@@ -1,76 +1,111 @@
 # Shu's Workspace
 
-A minimalist, developer-focused documentation workspace inspired by Confluence and Notion.
+개발자를 위한 문서 공간 - Docusaurus 기반의 모던한 문서 사이트
 
-## ✨ Features
+## ✨ 특징
 
-- **Clean Design**: Minimalist black/gray theme with developer aesthetics
-- **Sidebar Navigation**: Collapsible sidebar with organized sections
-- **Public & Private Docs**: Password-protected private section
-- **Responsive Design**: Mobile-friendly interface
-- **SPA Experience**: Smooth page transitions without reloads
+- **🚀 빠른 속도**: 최적화된 정적 사이트 생성
+- **📱 반응형 디자인**: 모든 기기에서 완벽한 표시
+- **🎨 깔끔한 디자인**: 모던하고 직관적인 UI
+- **🔍 강력한 검색**: 내장된 검색 기능
+- **📝 마크다운 지원**: MDX로 풍부한 콘텐츠 작성
+- **🌙 다크 모드**: 개발자 친화적인 테마
 
-## 🎨 Design Philosophy
+## 🛠️ 기술 스택
 
-Built with the developer mindset in mind - clean, functional, and distraction-free. The color palette draws inspiration from the tools developers love: dark themes, terminal windows, and Steve Jobs' iconic black aesthetic.
+- **Docusaurus 3.8**: 현대적인 문서 사이트 생성기
+- **TypeScript**: 타입 안전성과 개발 경험 향상
+- **React**: 컴포넌트 기반 UI
+- **pnpm**: 빠르고 효율적인 패키지 매니저
+- **GitHub Actions**: 자동화된 CI/CD
+- **GitHub Pages**: 무료 정적 사이트 호스팅
 
-## 🔐 Authentication
+## 🚀 빠른 시작
 
-The private section uses simple client-side authentication for demo purposes:
-- **Password**: `shu2025`
-- **Session Duration**: 24 hours
+### 필수 요구사항
 
-## 🚀 Live Demo
+- Node.js 18.0 이상
+- pnpm (권장) 또는 npm/yarn
 
-Visit the live site: [Shu's Workspace](https://shiwookim.github.io/ShiwooKim/)
+### 설치 및 실행
 
-## 🛠️ Tech Stack
+```bash
+# 저장소 클론
+git clone https://github.com/shiwookim/shusworkspace.git
+cd shusworkspace
 
-- **HTML5**: Semantic markup
-- **CSS3**: Modern styling with CSS Grid/Flexbox
-- **Vanilla JavaScript**: No dependencies, pure ES6+
-- **GitHub Pages**: Static hosting
+# 의존성 설치
+pnpm install
 
-## 📱 Browser Support
+# 개발 서버 시작
+pnpm start
+```
 
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
+개발 서버가 시작되면 `http://localhost:3000/shusworkspace/`에서 사이트를 확인할 수 있습니다.
 
-## 🏗️ Local Development
+## 📋 스크립트
 
-1. Clone the repository
-2. Open `index.html` in your browser
-3. Or serve with a local server:
-   ```bash
-   python -m http.server 8000
-   ```
+```bash
+# 개발 서버 시작
+pnpm start
 
-## 📋 Page Structure
+# 프로덕션 빌드
+pnpm build
 
-- **Home**: Welcome page with overview cards
-- **Profile**: Personal information and skills
-- **Public Projects**: Open planning documents
-- **Private Projects**: Password-protected workspace
-- **Blog**: Technical writing and thoughts
-- **Notes**: Quick documentation
+# 빌드된 사이트 로컬 서빙
+pnpm serve
 
-## 🎯 Usage
+# 타입 체크
+pnpm typecheck
+```
 
-1. Navigate using the sidebar menu
-2. Access private content with password
-3. Responsive design adapts to your device
-4. Clean, distraction-free reading experience
+## 🏗️ 프로젝트 구조
 
-## 🔮 Future Enhancements
+```
+shusworkspace/
+├── docs/                 # 문서 콘텐츠
+├── blog/                 # 블로그 포스트
+├── src/
+│   ├── components/       # React 컴포넌트
+│   ├── css/             # 커스텀 스타일
+│   └── pages/           # 커스텀 페이지
+├── static/              # 정적 파일
+├── docusaurus.config.ts # Docusaurus 설정
+└── sidebars.ts          # 사이드바 구성
+```
 
-- [ ] Dark/Light theme toggle
-- [ ] Markdown rendering for documents
-- [ ] Search functionality
-- [ ] Document version history
-- [ ] Export capabilities
+## 🚀 배포
+
+이 사이트는 GitHub Actions를 통해 자동으로 배포됩니다:
+
+1. `main` 브랜치에 푸시
+2. GitHub Actions가 자동으로 빌드 실행
+3. GitHub Pages에 배포 완료
+
+라이브 사이트: [https://shiwookim.github.io/shusworkspace/](https://shiwookim.github.io/shusworkspace/)
+
+## 📝 콘텐츠 작성
+
+### 문서 추가
+
+`docs/` 폴더에 마크다운 파일을 추가하면 자동으로 사이드바에 나타납니다.
+
+### 블로그 포스트 작성
+
+`blog/` 폴더에 날짜 형식의 파일명으로 포스트를 작성할 수 있습니다.
+
+## 🎨 커스터마이징
+
+- `docusaurus.config.ts`: 사이트 전체 설정
+- `src/css/custom.css`: 커스텀 스타일
+- `sidebars.ts`: 문서 네비게이션 구조
+
+## 📚 더 알아보기
+
+- [Docusaurus 공식 문서](https://docusaurus.io/)
+- [MDX 문법 가이드](https://mdxjs.com/)
+- [React 컴포넌트 개발](https://reactjs.org/)
 
 ---
 
-Built with ❤️ by Shu | Powered by vanilla web technologies
+Built with ❤️ by Shu | Powered by [Docusaurus](https://docusaurus.io/)
