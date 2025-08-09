@@ -2,27 +2,7 @@
 sidebar_position: 1
 ---
 
-# Project A 문서
+# ALLCASTING 문서 허브
 
-Project A 관련 기획서와 문서들을 관리하는 공간입니다.
-
-## 프로젝트 개요
-
-- **프로젝트명**: Project A
-- **상태**: 진행 중
-- **팀 구성**: 소규모 팀 (외주/사이드 프로젝트)
-
-## 문서 구성
-
-- 📋 **기획서**: 프로젝트 기획 및 요구사항
-- 🏗️ **아키텍처**: 시스템 설계 및 구조
-- 📊 **진행 현황**: 개발 진척도 및 이슈 사항
-- 🧪 **테스트**: 테스트 계획 및 결과
-
-## 접근 권한
-
-이 문서는 **Project A 팀 멤버**만 접근 가능합니다.
-
----
-
-> 🚀 Project A 관련 모든 문서화 작업이 이곳에서 이루어집니다.
+- ALLCASTING 프로젝트 기획서 정리를 위해 작성됨
+- 바로가기: [ALLCASTING: 정책서](/docs/project-a/allcasting), [Figma 링크](https://www.figma.com/design/39PKZuhovC6fmc0j7j0LhC/DESIGN?node-id=1946-8354&t=BfLQhiqpO2qzLP8o-1)
