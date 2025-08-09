@@ -115,48 +115,70 @@ async function handleRequest(request) {
     return await fetchFromGitHubPages(pathname)
   }
   
+  // 경로 정규화 유틸
+  const normalizePath = (p) => {
+    try {
+      if (!p || p === '/') return '/'
+      // baseUrl 중복 제거
+      if (p.startsWith('/shusworkspace/')) {
+        p = p.replace(/^\/shusworkspace/, '')
+      }
+      // 카테고리/-slug 와 섹션 루트는 슬래시로 마무리
+      if (/^\/docs\/(workspace|private|project-a|project-c)(\/.*)?$/.test(p)) {
+        // /docs/section -> /docs/section/
+        p = p.replace(/^\/(docs\/[^/]+)(?!\/)/, '/$1/')
+      }
+      if (/^\/docs\/category\/-/.test(p)) {
+        p = p.replace(/^(\/docs\/category\/-[^/]+)(?!\/)/, '$1/')
+      }
+      return p
+    } catch (_) {
+      return p
+    }
+  }
+
   // POST 요청인 경우 로그인 폼에서 제출된 데이터 처리
   if (request.method === 'POST') {
     console.log(`[DEBUG] POST request to ${pathname} - processing password`)
     const formData = await request.formData()
     const password = formData.get('password')
-    const requiredPassword = PASSWORDS[protectedPath]
+    const canonicalPath = normalizePath(protectedPath)
+    const requiredPassword = PASSWORDS[canonicalPath] || PASSWORDS[protectedPath]
     
     console.log(`[DEBUG] Password check: provided="${password}", required="${requiredPassword}", match=${password === requiredPassword}`)
     
     if (password === requiredPassword) {
       // 인증 성공 시 쿠키 설정하고 페이지 제공
       // 폴더 경로를 intro 페이지로 매핑 (GitHub Pages는 슬래시 필요)
-      let actualPath = pathname
-      if (pathname.endsWith('/docs/workspace/') || pathname === '/docs/workspace') {
+      const normalizedPathname = normalizePath(pathname)
+      let actualPath
+      if (normalizedPathname === '/docs/workspace/' ) {
         actualPath = '/shusworkspace/docs/workspace/intro/'
-      } else if (pathname.endsWith('/docs/private/') || pathname === '/docs/private') {
+      } else if (normalizedPathname === '/docs/private/' ) {
         actualPath = '/shusworkspace/docs/private/intro/'
-      } else if (pathname.endsWith('/docs/project-a/') || pathname === '/docs/project-a') {
+      } else if (normalizedPathname === '/docs/project-a/' ) {
         actualPath = '/shusworkspace/docs/project-a/intro/'
-      } else if (pathname.endsWith('/docs/project-c/') || pathname === '/docs/project-c') {
+      } else if (normalizedPathname === '/docs/project-c/' ) {
         actualPath = '/shusworkspace/docs/project-c/intro/'
       } else {
-        // 기타 경로들은 baseURL만 추가
-        actualPath = `/shusworkspace${pathname}`
+        actualPath = `/shusworkspace${normalizedPathname}`
       }
       
       console.log(`[DEBUG] Auth success - mapping ${pathname} to ${actualPath}`)
       
       // 쿠키 설정 후 Workers에서 직접 페이지 제공 (커스텀 사이드바 적용)
-      const sectionName = getSectionFromPath(protectedPath)
-      const response = await fetchFromGitHubPages(actualPath, true, sectionName)
-      const modifiedResponse = new Response(response.body, {
-        status: response.status,
+      const sectionName = getSectionFromPath(normalizePath(protectedPath))
+      // 로그인 성공 시에는 JS 하이드레이션 충돌을 피하기 위해 302로 명시 리다이렉트
+      return new Response(null, {
+        status: 302,
         headers: {
-          ...Object.fromEntries(response.headers),
-          'Set-Cookie': `auth_${protectedPath.replace(/\//g, '_')}=${password}; Path=${protectedPath}; HttpOnly; SameSite=Strict; Max-Age=3600`
+          Location: actualPath,
+          'Set-Cookie': `auth_${normalizePath(protectedPath).replace(/\//g, '_')}=${password}; Path=${normalizePath(protectedPath)}; HttpOnly; SameSite=Strict; Max-Age=3600`
         }
       })
-      return modifiedResponse
     } else {
       // 비밀번호 틀림
-      return new Response(getLoginPage(protectedPath, true), {
+      return new Response(getLoginPage(normalizePath(protectedPath), true), {
         status: 200,
         headers: {
           'Content-Type': 'text/html; charset=utf-8'
@@ -167,31 +189,32 @@ async function handleRequest(request) {
   
   // 쿠키 확인
   const cookies = request.headers.get('Cookie') || ''
-  const authCookie = `auth_${protectedPath.replace(/\//g, '_')}=${PASSWORDS[protectedPath]}`
+  const canonicalPath = normalizePath(protectedPath)
+  const authCookie = `auth_${canonicalPath.replace(/\//g, '_')}=${PASSWORDS[canonicalPath] || PASSWORDS[protectedPath]}`
   
   if (cookies.includes(authCookie)) {
     // 이미 인증됨 - 경로 매핑 적용 (GitHub Pages는 슬래시 필요)
-    let actualPath = pathname
-    if (pathname.endsWith('/docs/workspace/') || pathname === '/docs/workspace') {
+    const normalizedPathname = normalizePath(pathname)
+    let actualPath
+    if (normalizedPathname === '/docs/workspace/' ) {
       actualPath = '/shusworkspace/docs/workspace/intro/'
-    } else if (pathname.endsWith('/docs/private/') || pathname === '/docs/private') {
+    } else if (normalizedPathname === '/docs/private/' ) {
       actualPath = '/shusworkspace/docs/private/intro/'
-    } else if (pathname.endsWith('/docs/project-a/') || pathname === '/docs/project-a') {
+    } else if (normalizedPathname === '/docs/project-a/' ) {
       actualPath = '/shusworkspace/docs/project-a/intro/'
-    } else if (pathname.endsWith('/docs/project-c/') || pathname === '/docs/project-c') {
+    } else if (normalizedPathname === '/docs/project-c/' ) {
       actualPath = '/shusworkspace/docs/project-c/intro/'
     } else {
-      // 보호된 경로 내의 다른 페이지들도 baseURL 추가
-      actualPath = `/shusworkspace${pathname}`
+      actualPath = `/shusworkspace${normalizedPathname}`
     }
-    
-    console.log(`[DEBUG] Authenticated access - mapping ${pathname} to ${actualPath}`)
-    const sectionName = getSectionFromPath(protectedPath)
-    return await fetchFromGitHubPages(actualPath, true, sectionName)
+
+    console.log(`[DEBUG] Authenticated access - mapping ${pathname} -> ${normalizedPathname} -> ${actualPath}`)
+    // 인증된 접근도 302 리다이렉트로 SPA 경로를 정정
+    return Response.redirect(actualPath, 302)
   }
   
   // 인증되지 않음 - 로그인 폼 표시
-  return new Response(getLoginPage(protectedPath), {
+  return new Response(getLoginPage(normalizePath(protectedPath)), {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8'
@@ -332,24 +355,18 @@ async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, sectio
     let content = await response.text()
     const contentType = response.headers.get('content-type') || ''
     
-    // HTML 내용인 경우 상대 경로를 수정
+      // HTML 내용인 경우: 리다이렉트 루프만 방지. baseUrl/href/src 치환은 제거하여 하이드레이션 일관성 유지
     if (contentType.includes('text/html')) {
-      // baseURL 관련 에러 메시지가 있으면 제거하거나 수정
-      content = content.replace(/baseUrl = \/shusworkspace\//g, 'baseUrl = /')
-      content = content.replace(/href="\/shusworkspace\//g, 'href="/')
-      content = content.replace(/src="\/shusworkspace\//g, 'src="/')
-      content = content.replace(/action="\/shusworkspace\//g, 'action="/')
-      
-      // 무한 리다이렉트를 방지하기 위해 리다이렉트 스크립트 제거 (더 포괄적인 패턴)
+        // 무한 리다이렉트를 방지하기 위해 리다이렉트 스크립트 제거 (더 포괄적인 패턴)
       content = content.replace(/window\.location\.replace\([^)]*shusworkspace-auth\.shusworkspace\.workers\.dev[^)]*\)/g, '// Redirect disabled for Workers request')
       content = content.replace(/window\.location\.href\s*=\s*[^;]*shusworkspace-auth\.shusworkspace\.workers\.dev[^;]*/g, '// Redirect disabled for Workers request')
       content = content.replace(/location\.replace\([^)]*shusworkspace-auth\.shusworkspace\.workers\.dev[^)]*\)/g, '// Redirect disabled for Workers request')
       content = content.replace(/<meta http-equiv="refresh"[^>]*>/gi, '<!-- Meta refresh disabled for Workers request -->')
-      
-      // React 기반 리다이렉트도 제거
+        
+        // React 기반 리다이렉트도 제거
       content = content.replace(/if\s*\(\s*isProduction\s*&&\s*!isWorkerRequest\s*&&\s*!isAlreadyOnWorkers\s*\)\s*\{[^}]*window\.location\.replace[^}]*\}/g, '// Conditional redirect disabled for Workers request')
-      
-      // 보호된 페이지인 경우 기본 사이드바만 숨기기
+        
+        // 보호된 페이지인 경우 기본 사이드바만 숨기기
       if (applyCustomSidebar && section) {
         content = hideDocusaurusSidebar(content)
       }

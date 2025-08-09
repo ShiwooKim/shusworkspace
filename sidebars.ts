@@ -8,22 +8,22 @@ const sidebars: SidebarsConfig = {
     {
       type: 'link',
       label: '💼 Workspace',
-      href: `${WORKER_URL}/docs/workspace/`,
+      href: `${WORKER_URL}/shusworkspace/docs/workspace/`,
     },
     {
       type: 'link',
       label: '🔒 Private Notes',
-      href: `${WORKER_URL}/docs/private/`,
+      href: `${WORKER_URL}/shusworkspace/docs/private/`,
     },
     {
       type: 'link',
       label: '🚀 Project A',
-      href: `${WORKER_URL}/docs/project-a/`,
+      href: `${WORKER_URL}/shusworkspace/docs/project-a/`,
     },
     {
       type: 'link',
       label: '🚀 Project C',
-      href: `${WORKER_URL}/docs/project-c/`,
+      href: `${WORKER_URL}/shusworkspace/docs/project-c/`,
     }
   ],
 };
