@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkshusworkspace=self.webpackChunkshusworkspace||[]).push([[841],{9555:s=>{s.exports=JSON.parse('{"metadata":{"permalink":"/sws/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":4,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);
