@@ -16,22 +16,22 @@ const GITHUB_PAGES_URL = 'https://shiwookim.github.io/sws'
 
 // 각 섹션별 비밀번호 설정 (기본값). Cloudflare Secret로 오버라이드 가능
 const PASSWORDS = {
-  '/docs/private': 'private123',           // Private Notes 전체
-  '/docs/workspace': 'workspace456',       // Workspace 전체
+  '/docs/private': 'shukim',           // Private Notes 전체
+  '/docs/workspace': 'shukim',       // Workspace 전체
   '/docs/project-a': 'allcasting',        // Project A 전체
-  '/docs/project-c': 'projectC101',        // Project C 전체
-  '/docs/category/-private': 'private123',       // Private Notes 카테고리
-  '/docs/category/-workspace': 'workspace456',   // Workspace 카테고리
+  '/docs/project-c': 'chatterbox',        // Project C 전체
+  '/docs/category/-private': 'shukim',       // Private Notes 카테고리
+  '/docs/category/-workspace': 'shukim',   // Workspace 카테고리
   '/docs/category/-project-a': 'allcasting',    // Project A 카테고리
-  '/docs/category/-project-c': 'projectC101',    // Project C 카테고리
-  '/sws/docs/private': 'private123',           // Private Notes 전체 (baseURL 포함)
-  '/sws/docs/workspace': 'workspace456',       // Workspace 전체 (baseURL 포함)
+  '/docs/category/-project-c': 'chatterbox',    // Project C 카테고리
+  '/sws/docs/private': 'shukim',           // Private Notes 전체 (baseURL 포함)
+  '/sws/docs/workspace': 'shukim',       // Workspace 전체 (baseURL 포함)
   '/sws/docs/project-a': 'allcasting',        // Project A 전체 (baseURL 포함)
-  '/sws/docs/project-c': 'projectC101',        // Project C 전체 (baseURL 포함)
-  '/sws/docs/category/-private': 'private123',       // Private Notes 카테고리 (baseURL 포함)
-  '/sws/docs/category/-workspace': 'workspace456',   // Workspace 카테고리 (baseURL 포함)
+  '/sws/docs/project-c': 'chatterbox',        // Project C 전체 (baseURL 포함)
+  '/sws/docs/category/-private': 'shukim',       // Private Notes 카테고리 (baseURL 포함)
+  '/sws/docs/category/-workspace': 'shukim',   // Workspace 카테고리 (baseURL 포함)
   '/sws/docs/category/-project-a': 'allcasting',    // Project A 카테고리 (baseURL 포함)
-  '/sws/docs/category/-project-c': 'projectC101'     // Project C 카테고리 (baseURL 포함)
+  '/sws/docs/category/-project-c': 'chatterbox'     // Project C 카테고리 (baseURL 포함)
 }
 
 // Cloudflare Secrets로 설정된 비밀번호가 있으면 우선 사용
