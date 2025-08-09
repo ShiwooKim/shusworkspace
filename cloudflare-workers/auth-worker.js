@@ -123,16 +123,16 @@ async function handleRequest(request) {
     
     if (password === requiredPassword) {
       // 인증 성공 시 쿠키 설정하고 페이지 제공
-      // 폴더 경로를 intro 페이지로 매핑
+      // 폴더 경로를 intro 페이지로 매핑 (GitHub Pages는 슬래시 필요)
       let actualPath = pathname
       if (pathname.endsWith('/docs/workspace/')) {
-        actualPath = '/shusworkspace/docs/workspace/intro'
+        actualPath = '/shusworkspace/docs/workspace/intro/'
       } else if (pathname.endsWith('/docs/private/')) {
-        actualPath = '/shusworkspace/docs/private/intro'
+        actualPath = '/shusworkspace/docs/private/intro/'
       } else if (pathname.endsWith('/docs/project-a/')) {
-        actualPath = '/shusworkspace/docs/project-a/intro'
+        actualPath = '/shusworkspace/docs/project-a/intro/'
       } else if (pathname.endsWith('/docs/project-c/')) {
-        actualPath = '/shusworkspace/docs/project-c/intro'
+        actualPath = '/shusworkspace/docs/project-c/intro/'
       }
       
       console.log(`[DEBUG] Auth success - mapping ${pathname} to ${actualPath}`)
@@ -155,16 +155,16 @@ async function handleRequest(request) {
   const authCookie = `auth_${protectedPath.replace(/\//g, '_')}=${PASSWORDS[protectedPath]}`
   
   if (cookies.includes(authCookie)) {
-    // 이미 인증됨 - 경로 매핑 적용
+    // 이미 인증됨 - 경로 매핑 적용 (GitHub Pages는 슬래시 필요)
     let actualPath = pathname
     if (pathname.endsWith('/docs/workspace/')) {
-      actualPath = '/shusworkspace/docs/workspace/intro'
+      actualPath = '/shusworkspace/docs/workspace/intro/'
     } else if (pathname.endsWith('/docs/private/')) {
-      actualPath = '/shusworkspace/docs/private/intro'
+      actualPath = '/shusworkspace/docs/private/intro/'
     } else if (pathname.endsWith('/docs/project-a/')) {
-      actualPath = '/shusworkspace/docs/project-a/intro'
+      actualPath = '/shusworkspace/docs/project-a/intro/'
     } else if (pathname.endsWith('/docs/project-c/')) {
-      actualPath = '/shusworkspace/docs/project-c/intro'
+      actualPath = '/shusworkspace/docs/project-c/intro/'
     }
     
     console.log(`[DEBUG] Authenticated access - mapping ${pathname} to ${actualPath}`)
