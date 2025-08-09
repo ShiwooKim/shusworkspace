@@ -44,6 +44,18 @@ async function handleRequest(request) {
     return await fetchFromGitHubPages('/shusworkspace/docs/workspace/intro/', true, 'workspace', '/shusworkspace/docs/workspace/intro/')
   }
 
+  // private 오타: /privat/e -> private/intro
+  if (/\/(privat)\/e(\/|$)/.test(pathname)) {
+    return await fetchFromGitHubPages('/shusworkspace/docs/private/intro/', true, 'private', '/shusworkspace/docs/private/intro/')
+  }
+
+  // project 오타: /project-/a|c -> project-a|c/intro
+  const projectSplit = pathname.match(/\/project-\/(a|c)(\/|$)/)
+  if (projectSplit) {
+    const proj = projectSplit[1] === 'a' ? 'project-a' : 'project-c'
+    return await fetchFromGitHubPages(`/shusworkspace/docs/${proj}/intro/`, true, proj, `/shusworkspace/docs/${proj}/intro/`)
+  }
+
   // 0) 잘못 분리된 섹션 경로 교정: /workspac/e, /project-/a, /project-/c 등
   const fixSplitSection = (p) => {
     try {
