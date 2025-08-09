@@ -85,11 +85,21 @@ async function handleRequest(request) {
     return logoutResponse
   }
   
-  // 보호가 필요한 경로인지 확인 (디버깅 로그 추가)
-  console.log(`[DEBUG] Checking pathname: ${pathname}`)
+  // 보호가 필요한 경로인지 확인 (관대한 매칭으로 변경)
+  console.log(`[DEBUG] Checking pathname: "${pathname}" (length: ${pathname.length})`)
   const protectedPath = Object.keys(PASSWORDS).find(path => {
-    const isProtected = pathname.startsWith(path)
-    console.log(`[DEBUG] Testing path ${path}: ${isProtected}`)
+    // 더 관대한 매칭: 정확한 매치 또는 startsWith
+    const isExactMatch = pathname === path
+    const isStartsWithMatch = pathname.startsWith(path)
+    const isStartsWithSlash = pathname.startsWith(path + '/')
+    const isProtected = isExactMatch || isStartsWithMatch || isStartsWithSlash
+    
+    console.log(`[DEBUG] Testing "${path}" vs "${pathname}":`)
+    console.log(`[DEBUG]   - Exact match: ${isExactMatch}`)
+    console.log(`[DEBUG]   - Starts with: ${isStartsWithMatch}`) 
+    console.log(`[DEBUG]   - Starts with/: ${isStartsWithSlash}`)
+    console.log(`[DEBUG]   - Result: ${isProtected}`)
+    
     return isProtected
   })
   console.log(`[DEBUG] Protected path found: ${protectedPath}`)
