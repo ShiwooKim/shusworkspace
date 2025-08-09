@@ -173,7 +173,7 @@ async function handleRequest(request) {
         status: 302,
         headers: {
           Location: actualPath,
-          'Set-Cookie': `auth_${normalizePath(protectedPath).replace(/\//g, '_')}=${password}; Path=${normalizePath(protectedPath)}; HttpOnly; SameSite=Strict; Max-Age=3600`
+          'Set-Cookie': `auth_${normalizePath(protectedPath).replace(/\//g, '_')}=${password}; Path=/shusworkspace${normalizePath(protectedPath)}; HttpOnly; SameSite=Strict; Max-Age=3600`
         }
       })
     } else {
@@ -209,8 +209,12 @@ async function handleRequest(request) {
     }
 
     console.log(`[DEBUG] Authenticated access - mapping ${pathname} -> ${normalizedPathname} -> ${actualPath}`)
-    // 인증된 접근도 302 리다이렉트로 SPA 경로를 정정
-    return Response.redirect(actualPath, 302)
+    // 이미 정규 경로라면 직접 페치, 아니면 302로 보정
+    if (pathname !== actualPath) {
+      return Response.redirect(actualPath, 302)
+    }
+    const sectionName = getSectionFromPath(canonicalPath)
+    return await fetchFromGitHubPages(actualPath, true, sectionName)
   }
   
   // 인증되지 않음 - 로그인 폼 표시
@@ -319,6 +323,30 @@ function getStaticHomePage() {
 
 // GitHub Pages에서 컨텐츠를 가져오는 함수
 async function fetchFromGitHubPages(pathname, applyCustomSidebar = false, section = null) {
+  // 추가 안전장치: 잘못 분리된 섹션 슬러그(workspac/e 등)를 교정
+  const normalizeForGithub = (p) => {
+    try {
+      if (!p) return p
+      const pathOnly = p.split('?')[0].split('#')[0]
+      const segments = pathOnly.replace(/^\/+/, '').split('/')
+      // docs 섹션의 잘못 분리된 세그먼트 합치기
+      if (segments[0] === 'docs' && segments.length >= 3) {
+        const allowed = new Set(['workspace', 'private', 'project-a', 'project-c', 'category'])
+        if (!allowed.has(segments[1]) && segments[1] !== 'category' && segments.length >= 3) {
+          const merged = `${segments[1]}${segments[2]}`
+          if (['workspace', 'private', 'project-a', 'project-c'].includes(merged)) {
+            segments.splice(1, 2, merged)
+          }
+        }
+      }
+      const normalized = '/' + segments.join('/')
+      return normalized + (p.includes('?') ? '?' + p.split('?')[1] : '')
+    } catch {
+      return p
+    }
+  }
+
+  pathname = normalizeForGithub(pathname)
   // 루트 경로 요청을 GitHub Pages baseURL로 리다이렉트
   let githubPath = pathname
   
