@@ -40,7 +40,13 @@ const config: Config = {
     [
       'classic',
       {
-        docs: false, // docs 비활성화 - Workers에서만 제공
+        docs: {
+          id: 'default',
+          path: 'docs',
+          routeBasePath: 'docs',
+          sidebarPath: './sidebars.ts',
+          editUrl: 'https://github.com/shiwookim/shusworkspace/tree/main/',
+        },
         blog: {
           showReadingTime: true,
           feedOptions: {

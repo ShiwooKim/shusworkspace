@@ -94,7 +94,13 @@ async function fetchFromGitHubPages(pathname) {
   const githubUrl = `https://shiwookim.github.io${githubPath}`
   
   try {
-    const response = await fetch(githubUrl)
+    // 무한 리다이렉트 방지를 위한 특별한 User-Agent 헤더 추가
+    const response = await fetch(githubUrl, {
+      headers: {
+        'User-Agent': 'Cloudflare-Workers-Internal-Request',
+        'X-Forwarded-For': '127.0.0.1', // 내부 요청임을 표시
+      }
+    })
     
     if (!response.ok) {
       return new Response(`Content not found: ${githubUrl}`, { status: 404 })
@@ -111,6 +117,10 @@ async function fetchFromGitHubPages(pathname) {
       content = content.replace(/href="\/shusworkspace\//g, 'href="/')
       content = content.replace(/src="\/shusworkspace\//g, 'src="/')
       content = content.replace(/action="\/shusworkspace\//g, 'action="/')
+      
+      // 무한 리다이렉트를 방지하기 위해 리다이렉트 스크립트 제거
+      content = content.replace(/window\.location\.replace\(['"`]https:\/\/shusworkspace-auth\.shusworkspace\.workers\.dev['"`]\);?/g, '// Redirect disabled for Workers request')
+      content = content.replace(/<meta http-equiv="refresh"[^>]*>/gi, '<!-- Meta refresh disabled for Workers request -->')
     }
     
     // 새로운 응답 생성
