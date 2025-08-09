@@ -17,12 +17,12 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'link',
-      label: '🚀 Project A',
+      label: '🚀 PJT. AltCast',
       href: `${WORKER_URL}/docs/project-a/`,
     },
     {
       type: 'link',
-      label: '🚀 Project C',
+      label: '🚀 PJT. Project C',
       href: `${WORKER_URL}/docs/project-c/`,
     }
   ],
