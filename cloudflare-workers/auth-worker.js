@@ -8,10 +8,14 @@ const GITHUB_PAGES_URL = 'https://shiwookim.github.io/shusworkspace'
 
 // 각 섹션별 비밀번호 설정
 const PASSWORDS = {
-  '/docs/private/': 'private123',      // Private Notes 비밀번호
-  '/docs/workspace/': 'workspace456',  // Workspace 비밀번호 
-  '/docs/project-a/': 'projectA789',   // Project A 비밀번호
-  '/docs/project-c/': 'projectC101'    // Project C 비밀번호
+  '/docs/private/': 'private123',           // Private Notes 비밀번호
+  '/docs/workspace/': 'workspace456',       // Workspace 비밀번호 
+  '/docs/project-a/': 'projectA789',        // Project A 비밀번호
+  '/docs/project-c/': 'projectC101',        // Project C 비밀번호
+  '/docs/category/workspace': 'workspace456',   // Workspace 카테고리
+  '/docs/category/private': 'private123',       // Private Notes 카테고리  
+  '/docs/category/-project-a': 'projectA789',   // Project A 카테고리
+  '/docs/category/-project-c': 'projectC101'    // Project C 카테고리
 }
 
 async function handleRequest(request) {
@@ -78,15 +82,14 @@ async function handleRequest(request) {
     pathname.startsWith(path)
   )
   
-  // 보호되지 않은 경로는 GitHub Pages에서 가져와서 반환
+  // 보호되지 않은 경로 처리
   if (!protectedPath) {
-    // 루트 경로의 경우 직접 HTML 반환 (무한루프 방지)
+    // 루트 경로의 경우 Docusaurus intro 페이지로 리다이렉트
     if (pathname === '/' || pathname === '' || pathname === '/shusworkspace/' || pathname === '/shusworkspace') {
-      return new Response(getStaticHomePage(), {
-        status: 200,
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
-      })
+      return Response.redirect(new URL('/docs/intro', request.url).toString(), 302)
     }
+    
+    // 다른 공개 경로들은 GitHub Pages에서 가져오기
     return await fetchFromGitHubPages(pathname)
   }
   
