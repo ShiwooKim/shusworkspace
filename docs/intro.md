@@ -2,46 +2,45 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
+# Shu's Workspace에 오신 것을 환영합니다
 
-Let's discover **Docusaurus in less than 5 minutes**.
+**개발자를 위한 문서 공간**에서 다양한 프로젝트와 학습 내용을 공유합니다.
 
-## Getting Started
+## 시작하기
 
-Get started by **creating a new site**.
+이 워크스페이스는 다음과 같은 내용을 포함합니다:
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+- 📋 **프로젝트 문서**: 진행 중인 프로젝트들의 상세한 설명
+- 🛠️ **개발 가이드**: 개발 과정에서 얻은 노하우와 팁
+- 📝 **학습 노트**: 새로 배운 기술과 개념들의 정리
 
-### What you'll need
+## 주요 섹션
 
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+### 🏠 홈페이지
+워크스페이스의 개요와 최신 업데이트를 확인할 수 있습니다.
 
-## Generate a new site
+### 📚 문서
+프로젝트별 상세 문서와 기술 가이드를 제공합니다.
 
-Generate a new Docusaurus site using the **classic template**.
+### ✍️ 블로그
+개발 과정에서의 경험과 생각을 공유합니다.
 
-The classic template will automatically be added to your project after you run the command:
+## 로컬에서 실행하기
 
-```bash
-npm init docusaurus@latest my-website classic
-```
-
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
-
-The command also installs all necessary dependencies you need to run Docusaurus.
-
-## Start your site
-
-Run the development server:
+이 사이트를 로컬에서 실행하려면:
 
 ```bash
-cd my-website
-npm run start
+# 저장소 클론
+git clone https://github.com/shiwookim/shusworkspace.git
+cd shusworkspace
+
+# 의존성 설치
+pnpm install
+
+# 개발 서버 시작
+pnpm start
 ```
 
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
+개발 서버가 시작되면 `http://localhost:3000`에서 사이트를 확인할 수 있습니다.
 
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+문서를 수정하면 **자동으로 새로고침**되어 변경사항을 즉시 확인할 수 있습니다.
