@@ -40,8 +40,8 @@ async function handleRequest(request) {
 
   // 강력한 1차 타이포 교정: /workspac/e -> 워크스페이스 인트로로 직접 이동 (baseUrl 유무 모두)
   if (/\/(workspac)\/e(\/|$)/.test(pathname)) {
-    const target = `${url.origin}/shusworkspace/docs/workspace/intro/`
-    return new Response(null, { status: 302, headers: { Location: target, 'Cache-Control': 'no-store' } })
+    // 주소창은 잘못되어 있어도, 바로 올바른 컨텐츠를 200으로 반환해 루프를 완전히 차단
+    return await fetchFromGitHubPages('/shusworkspace/docs/workspace/intro/', true, 'workspace')
   }
 
   // 0) 잘못 분리된 섹션 경로 교정: /workspac/e, /project-/a, /project-/c 등
