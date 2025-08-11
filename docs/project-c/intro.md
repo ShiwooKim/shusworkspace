@@ -2,24 +2,32 @@
 sidebar_position: 1
 ---
 
-# Project C
+# Chatterbox Kids 리뉴얼
 
-Project C의 기획 및 개발 문서를 관리하는 공간입니다.
+Chatterbox Kids 리뉴얼 프로젝트의 기획 및 개발 문서를 관리하는 공간입니다.
 
-## 프로젝트 개요
+## 인덱스
 
-- 🎯 **목표**: 프로젝트의 주요 목표와 방향성
-- 📅 **일정**: 단계별 개발 일정 및 마일스톤
-- 👥 **팀**: 프로젝트 참여 인원 및 역할
-- 📊 **진행 상황**: 현재까지의 진행 상황
+### Chatterbox Kids: 상위 기획
+- 01) [상위 기획](/docs/project-c/high-level-planning)
+- 02) [UI 설계 정책](/docs/project-c/ui-design-policy)
 
-## 주요 문서
+### Chatterbox Kids: 정책서
+- 01) [회사소개](/docs/project-c/company-introduction)
+- 02) 프로그램 소개
+  - [프로그램 소개: 개요](/docs/project-c/program-introduction-overview)
+  - [프로그램 소개: 채터박스키즈 영어](/docs/project-c/program-introduction-chatterboxkids-en)
+  - [프로그램 소개: 채터박스키즈 중국어](/docs/project-c/program-introduction-chatterboxkids-zh)
+  - [프로그램 소개: 수다쟁이 한글](/docs/project-c/program-introduction-sudajaengi-ko)
+- 03) [공지사항](/docs/project-c/notices)
+- 04) [자료실](/docs/project-c/resources)
+- 05) [학습](/docs/project-c/learning)
+  - [녹음](/docs/project-c/learning#5-개요)
 
-- 📝 **기획서**: 프로젝트 기획 및 요구사항
-- 🎨 **디자인**: UI/UX 디자인 가이드
-- 🛠️ **개발**: 기술 스택 및 아키텍처
-- 📈 **분석**: 시장 및 사용자 분석
+## 와이어프레임 (Figma)
+- [공지사항, 자료실](https://www.figma.com/design/ZF505IHRU43bYNkdOv4gEa/ChatterboxKids?node-id=6-2&t=sI0hUuS7AfzBYouE-1)
+- [학습](https://www.figma.com/design/ZF505IHRU43bYNkdOv4gEa/ChatterboxKids?node-id=11-347&t=sI0hUuS7AfzBYouE-1)
 
 ---
 
-> 이 공간의 문서들은 Project C 팀원들과 공유됩니다.
+> 이 공간의 문서들은 프로젝트 팀원들과 공유됩니다.

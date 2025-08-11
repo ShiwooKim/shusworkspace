@@ -22,7 +22,7 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'link',
-      label: '🚀 PJT. Project C',
+      label: '🚀 PJT. Myna(CB)',
       href: `${WORKER_URL}/docs/project-c/`,
     }
   ],
