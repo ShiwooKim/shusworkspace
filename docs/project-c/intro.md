@@ -1,5 +1,6 @@
 ---
 sidebar_position: 1
+title: "Chatterbox Kids 리뉴얼"
 ---
 
 # Chatterbox Kids 리뉴얼
