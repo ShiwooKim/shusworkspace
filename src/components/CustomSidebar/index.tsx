@@ -4,7 +4,7 @@ import Link from '@docusaurus/Link';
 import { useLocation } from '@docusaurus/router';
 
 interface CustomSidebarProps {
-  currentSection: 'workspace' | 'private' | 'project-a' | 'project-c';
+  currentSection: 'workspace' | 'private' | 'project-a';
 }
 
 export default function CustomSidebar({ currentSection }: CustomSidebarProps): React.ReactElement {
@@ -36,10 +36,10 @@ export default function CustomSidebar({ currentSection }: CustomSidebarProps): R
           <h4>🚀 Projects</h4>
           <ul>
             <li className={currentSection === 'project-a' ? styles.active : ''}>
-              <Link to="/docs/project-a/intro">Project A</Link>
+              <Link to="/docs/project-a/intro">ALLCASTING 허브</Link>
             </li>
-            <li className={currentSection === 'project-c' ? styles.active : ''}>
-              <Link to="/docs/project-c/intro">Project C</Link>
+            <li className={currentSection === 'project-a' ? styles.active : ''}>
+              <Link to="/docs/project-a/allcasting">ALLCASTING 정책서</Link>
             </li>
           </ul>
         </div>

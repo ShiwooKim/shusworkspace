@@ -1,13 +1,18 @@
-# Cloudflare Workers 접근 제어 설정
+# Cloudflare Workers 전체 도메인 인증 설정
 
-이 폴더에는 Cloudflare Workers를 사용한 접근 제어 설정이 포함되어 있습니다.
+이 폴더에는 Cloudflare Workers를 사용한 전체 도메인 인증 설정이 포함되어 있습니다.
+
+## 인증 방식 변경사항
+
+- **이전**: 문서별 개별 인증 (복잡한 리다이렉트, 하이드레이션 문제)
+- **현재**: 클라이언트 사이드 인증 (ELLO 방식과 동일)
+  - sessionStorage 기반 (3시간 세션)
+  - 브라우저 종료 시 재인증 필요
+  - Workers는 단순 프록시 역할
 
 ## 설정된 비밀번호
 
-- **Private Notes**: `private123`
-- **Workspace**: `workspace456`  
-- **Project A**: `projectA789`
-- **Project C**: `projectC101`
+- **전체 사이트**: `shiwookim.po`
 
 > ⚠️ **보안 주의**: 실제 사용 시에는 반드시 강력한 비밀번호로 변경하세요!
 
@@ -34,13 +39,35 @@ wrangler deploy
 2. GitHub Pages 도메인을 Cloudflare를 통해 프록시
 3. Workers Routes에서 경로 설정
 
-## 사용자 경험
+## Workers 버전별 특징
 
-보호된 경로 접근 시:
-1. 브라우저에서 로그인 팝업이 표시됩니다
-2. **사용자명**: 아무거나 입력 (예: admin)
-3. **비밀번호**: 해당 섹션의 설정된 비밀번호
+1. **auth-worker-simple.js**: 단순 프록시 (권장)
+   - 클라이언트 사이드 인증과 함께 사용
+   - 최소한의 로직으로 안정성 향상
 
-## 비밀번호 변경
+2. **auth-worker.js**: 복합 서버 사이드 인증 (레거시)
+   - 복잡한 로직과 하이드레이션 workaround 포함
+   - 백업 및 참고용
 
-`auth-worker.js` 파일의 `PASSWORDS` 객체에서 비밀번호를 수정하고 재배포하면 됩니다.
+3. **auth-worker-secure.js**: Basic Auth 방식 (레거시)
+   - 브라우저 기본 인증 팝업 사용
+   - 백업 및 참고용
+
+## 배포 명령어
+
+```bash
+# 권장: 단순 프록시 버전
+pnpm run deploy:workers:simple
+
+# 레거시 버전들
+pnpm run deploy:workers
+pnpm run deploy:workers:secure
+```
+
+## 장점
+
+- ✅ 단순한 인증 플로우
+- ✅ Docusaurus 네이티브 경험 유지
+- ✅ 하이드레이션 문제 해결
+- ✅ 브라우저 캐싱 최적화 활용
+- ✅ 끊김 없는 네비게이션

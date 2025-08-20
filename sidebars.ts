@@ -1,30 +1,23 @@
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
-const WORKER_URL = 'https://shusworkspace-auth.shusworkspace.workers.dev';
-
 const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'intro', // Public Docs
-  {
-      type: 'link',
+    {
+      type: 'category',
       label: '💼 Workspace',
-      href: `${WORKER_URL}/docs/workspace/`,
+      items: ['workspace/intro'],
     },
     {
-      type: 'link',
+      type: 'category', 
       label: '🔒 Private Notes',
-      href: `${WORKER_URL}/docs/private/`,
+      items: ['private/intro'],
     },
     {
-      type: 'link',
-      label: '🚀 PJT. AltCast',
-      href: `${WORKER_URL}/docs/project-a/`,
+      type: 'category',
+      label: '🚀 PJT. AltCast', 
+      items: ['project-a/intro', 'project-a/allcasting'],
     },
-    {
-      type: 'link',
-      label: '🚀 PJT. Myna(CB)',
-      href: `${WORKER_URL}/docs/project-c/`,
-    }
   ],
 };
 
